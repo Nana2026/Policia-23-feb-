@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Potenciales - Policía</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg-primary:#0a0e14;--bg-secondary:#131921;--bg-card:#1a2332;--bg-card-hover:#222d3f;--accent-blue:#3b82f6;--accent-cyan:#22d3ee;--accent-emerald:#10b981;--accent-amber:#f59e0b;--accent-rose:#f43f5e;--accent-purple:#a855f7;--accent-teal:#14b8a6;--accent-orange:#f97316;--text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#2d3748}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;background-image:radial-gradient(ellipse at 20% 0%,rgba(59,130,246,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(34,211,238,.06) 0%,transparent 50%)}.container{max-width:1700px;margin:0 auto;padding:2rem}header{margin-bottom:2rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem}.header-left h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--text-primary),var(--accent-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.header-left p{color:var(--text-secondary);font-size:.9rem}.date-range{background:var(--bg-card);padding:.6rem 1.2rem;border-radius:10px;border:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.85rem;color:var(--accent-cyan)}.tabs{display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap}.tab{padding:.6rem 1.2rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;font-weight:500;font-size:.9rem;color:var(--text-secondary)}.tab:hover{background:var(--bg-card-hover);border-color:var(--accent-blue)}.tab.active{background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));border-color:transparent;color:#fff}.tab-content{display:none;animation:fadeIn .3s}.tab-content.active{display:block}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}.kpi-card{background:var(--bg-card);border-radius:14px;padding:1.1rem;border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .2s}.kpi-card:hover{transform:translateY(-3px)}.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}.kpi-card.blue::before{background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))}.kpi-card.emerald::before{background:linear-gradient(90deg,var(--accent-emerald),#34d399)}.kpi-card.amber::before{background:linear-gradient(90deg,var(--accent-amber),#fbbf24)}.kpi-card.rose::before{background:linear-gradient(90deg,var(--accent-rose),#fb7185)}.kpi-card.purple::before{background:linear-gradient(90deg,var(--accent-purple),#c084fc)}.kpi-card.cyan::before{background:linear-gradient(90deg,var(--accent-cyan),#67e8f9)}.kpi-card.teal::before{background:linear-gradient(90deg,var(--accent-teal),#2dd4bf)}.kpi-card.orange::before{background:linear-gradient(90deg,var(--accent-orange),#fb923c)}.kpi-label{font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.4px}.kpi-value{font-size:1.8rem;font-weight:700;font-family:'Space Mono',monospace}.kpi-card.blue .kpi-value{color:var(--accent-cyan)}.kpi-card.emerald .kpi-value{color:var(--accent-emerald)}.kpi-card.amber .kpi-value{color:var(--accent-amber)}.kpi-card.rose .kpi-value{color:var(--accent-rose)}.kpi-card.purple .kpi-value{color:var(--accent-purple)}.kpi-card.cyan .kpi-value{color:var(--accent-cyan)}.kpi-card.teal .kpi-value{color:var(--accent-teal)}.kpi-card.orange .kpi-value{color:var(--accent-orange)}.kpi-detail{font-size:.75rem;color:var(--text-secondary)}.kpi-detail .female{color:var(--accent-rose);font-weight:600}.kpi-detail .male{color:var(--accent-blue);font-weight:600}.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:1.25rem;margin-bottom:1.5rem}.chart-card{background:var(--bg-card);border-radius:14px;padding:1.25rem;border:1px solid var(--border)}.chart-title{font-size:.95rem;font-weight:600;margin-bottom:1rem;color:var(--text-primary);display:flex;align-items:center;gap:.4rem}.chart-title::before{content:'';width:3px;height:16px;background:linear-gradient(180deg,var(--accent-blue),var(--accent-cyan));border-radius:2px}.chart-container{position:relative;height:260px}.day-selector{display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap}.day-btn{padding:.5rem .9rem;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .2s;font-family:'Space Mono',monospace;font-size:.8rem;color:var(--text-secondary)}.day-btn:hover{background:var(--bg-card-hover);border-color:var(--accent-blue)}.day-btn.active{background:var(--accent-blue);border-color:var(--accent-blue);color:#fff}.daily-content{display:none}.daily-content.active{display:block;animation:fadeIn .3s}.daily-header{background:linear-gradient(135deg,var(--bg-card),var(--bg-card-hover));border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}.daily-date{font-size:1.3rem;font-weight:700;color:var(--accent-cyan)}.daily-totals{display:flex;gap:1.5rem}.daily-total-item{text-align:center}.daily-total-label{font-size:.7rem;color:var(--text-muted);text-transform:uppercase}.daily-total-value{font-size:1.3rem;font-weight:700;font-family:'Space Mono',monospace}.daily-total-value.proceso{color:var(--accent-cyan)}.daily-total-value.potencial{color:var(--accent-emerald)}.section-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}.section-card{background:var(--bg-card);border-radius:12px;overflow:hidden;border:1px solid var(--border)}.section-header{padding:.8rem 1rem;font-weight:600;font-size:.85rem;display:flex;justify-content:space-between;align-items:center}.section-header.laboratorio{background:linear-gradient(90deg,rgba(59,130,246,.2),transparent);border-left:3px solid var(--accent-blue)}.section-header.medico{background:linear-gradient(90deg,rgba(16,185,129,.2),transparent);border-left:3px solid var(--accent-emerald)}.section-header.odontologia{background:linear-gradient(90deg,rgba(168,85,247,.2),transparent);border-left:3px solid var(--accent-purple)}.section-header.atletica{background:linear-gradient(90deg,rgba(245,158,11,.2),transparent);border-left:3px solid var(--accent-amber)}.section-header.socioambiental{background:linear-gradient(90deg,rgba(20,184,166,.2),transparent);border-left:3px solid var(--accent-teal)}.section-header.admin{background:linear-gradient(90deg,rgba(249,115,22,.2),transparent);border-left:3px solid var(--accent-orange)}.section-header.documentacion{background:linear-gradient(90deg,rgba(244,63,94,.2),transparent);border-left:3px solid var(--accent-rose)}.section-total{font-family:'Space Mono',monospace;font-size:1.3rem;font-weight:700}.section-body{padding:.9rem}.gender-bars{display:flex;flex-direction:column;gap:.5rem}.gender-row{display:flex;align-items:center;gap:.6rem}.gender-label{width:65px;font-size:.75rem;color:var(--text-secondary)}.gender-bar-container{flex:1;height:18px;background:var(--bg-secondary);border-radius:4px;overflow:hidden}.gender-bar{height:100%;border-radius:4px;transition:width .5s}.gender-bar.female{background:linear-gradient(90deg,var(--accent-rose),#fb7185)}.gender-bar.male{background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))}.gender-value{width:40px;text-align:right;font-family:'Space Mono',monospace;font-weight:600;font-size:.8rem}.detail-rows{font-size:.75rem;color:var(--text-secondary);margin-top:.6rem}.detail-row{display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid var(--border)}.detail-row:last-child{border-bottom:none}.detail-row span:last-child{font-family:'Space Mono',monospace;color:var(--text-primary)}.summary-table{background:var(--bg-card);border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-top:1.5rem;overflow-x:auto}.summary-table table{width:100%;border-collapse:collapse;min-width:1000px}.summary-table th{background:var(--bg-secondary);padding:.75rem .5rem;text-align:center;font-size:.7rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase}.summary-table td{padding:.65rem .5rem;border-top:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.75rem;text-align:center}.summary-table tr:hover td{background:var(--bg-card-hover)}
+        .config-section{background:var(--bg-card);border-radius:14px;padding:1.5rem;border:1px solid var(--border);margin-bottom:1.5rem}.config-section h3{color:var(--accent-cyan);margin-bottom:1rem;font-size:1.1rem}.config-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem}.config-row input{flex:1;min-width:280px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;padding:.7rem;color:var(--text-primary);font-size:.85rem}.config-row input:focus{outline:none;border-color:var(--accent-cyan)}.btn{padding:.7rem 1.4rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:.85rem;border:none;transition:all .2s}.btn-primary{background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));color:#fff}.btn-primary:hover{transform:translateY(-2px)}.btn-secondary{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary)}.btn-secondary:hover{border-color:var(--accent-cyan);color:var(--accent-cyan)}.btn-success{background:linear-gradient(135deg,var(--accent-emerald),var(--accent-teal));color:#fff}.btn-success:hover{transform:translateY(-2px)}.btn-success:disabled{opacity:0.5;cursor:not-allowed;transform:none}.status-box{margin-top:1rem;padding:.75rem;border-radius:6px;font-size:.85rem;display:none}.status-box.show{display:block}.status-box.success{background:rgba(16,185,129,.2);border:1px solid var(--accent-emerald);color:var(--accent-emerald)}.status-box.error{background:rgba(244,63,94,.2);border:1px solid var(--accent-rose);color:var(--accent-rose)}.status-box.info{background:rgba(59,130,246,.2);border:1px solid var(--accent-blue);color:var(--accent-blue)}.instructions{background:var(--bg-secondary);border-radius:8px;padding:1.25rem;margin-top:1rem;font-size:.85rem;line-height:1.7}.instructions h4{color:var(--accent-amber);margin-bottom:.75rem}.instructions ol{margin-left:1.25rem;color:var(--text-secondary)}.instructions li{margin-bottom:.5rem}.instructions code{background:var(--bg-card);padding:.2rem .5rem;border-radius:4px;color:var(--accent-cyan);font-family:'Space Mono',monospace;font-size:.8rem;display:block;margin:.5rem 0;white-space:pre-wrap;word-break:break-all}.last-update{font-size:.75rem;color:var(--text-muted);margin-top:.5rem}
+        .form-section{background:var(--bg-card);border-radius:14px;padding:1.5rem;border:1px solid var(--border);margin-bottom:1.5rem}.form-section h3{color:var(--accent-emerald);margin-bottom:1.25rem;font-size:1.1rem}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:.5rem;margin-bottom:.5rem}.form-group{display:flex;flex-direction:column;gap:.25rem}.form-group label{font-size:.65rem;color:var(--text-secondary);font-weight:500}.form-group input{background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:.45rem;color:var(--text-primary);font-family:'Space Mono',monospace;font-size:.8rem;width:100%}.form-group input:focus{outline:none;border-color:var(--accent-cyan)}.form-group input[type="date"]{color-scheme:dark}.form-section-title{font-size:.75rem;color:var(--accent-blue);margin:1rem 0 .4rem;padding-bottom:.25rem;border-bottom:1px solid var(--border);font-weight:600}.connection-status{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:6px;font-size:.8rem;margin-bottom:1rem}.connection-status.connected{background:rgba(16,185,129,.15);color:var(--accent-emerald)}.connection-status.disconnected{background:rgba(244,63,94,.15);color:var(--accent-rose)}.connection-status .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+        @media(max-width:768px){.container{padding:1rem}.header-left h1{font-size:1.4rem}.kpi-value{font-size:1.4rem}.charts-grid{grid-template-columns:1fr}.chart-container{height:200px}.config-row input{min-width:100%}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>Dashboard Potenciales Diario</h1>
+                <p>Policía - Seguimiento de Evaluaciones y Procesos</p>
+            </div>
+            <div>
+                <div class="date-range" id="dateRangeDisplay">Cargando...</div>
+                <div class="last-update" id="lastUpdate"></div>
+            </div>
+        </header>
+        <div class="tabs">
+            <div class="tab active" data-tab="overview">📊 Visión General</div>
+            <div class="tab" data-tab="daily">📅 Por Día</div>
+            <div class="tab" data-tab="trends">📈 Tendencias</div>
+            <div class="tab" data-tab="adddata">➕ Agregar Datos</div>
+            <div class="tab" data-tab="config">⚙️ Configuración</div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div id="overview" class="tab-content active">
+            <div class="kpi-grid" id="kpiGrid"></div>
+            <div class="charts-grid">
+                <div class="chart-card"><div class="chart-title">Evolución Total En Proceso</div><div class="chart-container"><canvas id="chartEnProceso"></canvas></div></div>
+                <div class="chart-card"><div class="chart-title">Evolución Total Potencial</div><div class="chart-container"><canvas id="chartPotencial"></canvas></div></div>
+                <div class="chart-card"><div class="chart-title">Laboratorio vs Médico</div><div class="chart-container"><canvas id="chartLabMed"></canvas></div></div>
+                <div class="chart-card"><div class="chart-title">Ent. Admin vs Documentación</div><div class="chart-container"><canvas id="chartAdminDoc"></canvas></div></div>
+            </div>
+            <div class="summary-table"><table><thead><tr><th>Fecha</th><th>Lab</th><th>Méd</th><th>Odonto</th><th>Atlét</th><th>Socio</th><th>Admin</th><th>Doc</th><th>Proceso</th><th>Potenc</th></tr></thead><tbody id="summaryTableBody"></tbody></table></div>
+        </div>
+
+        <!-- DAILY -->
+        <div id="daily" class="tab-content">
+            <div class="day-selector" id="daySelector"></div>
+            <div id="dailyContents"></div>
+        </div>
+
+        <!-- TRENDS -->
+        <div id="trends" class="tab-content">
+            <div class="charts-grid">
+                <div class="chart-card"><div class="chart-title">Tendencia Laboratorio</div><div class="chart-container"><canvas id="chartLabTrend"></canvas></div></div>
+                <div class="chart-card"><div class="chart-title">Tendencia Médico</div><div class="chart-container"><canvas id="chartMedTrend"></canvas></div></div>
+                <div class="chart-card"><div class="chart-title">Tendencia Entrevista Admin</div><div class="chart-container"><canvas id="chartAdminTrend"></canvas></div></div>
+                <div class="chart-card"><div class="chart-title">Tendencia Documentación</div><div class="chart-container"><canvas id="chartDocTrend"></canvas></div></div>
+            </div>
+        </div>
+
+        <!-- ADD DATA -->
+        <div id="adddata" class="tab-content">
+            <div class="form-section">
+                <h3>➕ Cargar Nuevo Día</h3>
+                <div id="connectionStatus" class="connection-status disconnected">
+                    <span class="dot"></span>
+                    <span>Sin conexión - Configurá Google Sheets en ⚙️</span>
+                </div>
+                <div id="formAlert" class="status-box"></div>
+
+                <div class="form-group" style="max-width:180px;margin-bottom:1rem">
+                    <label>📅 Fecha</label>
+                    <input type="date" id="inputFecha">
+                </div>
+
+                <div class="form-section-title">🔬 LABORATORIO</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Total</label><input type="number" id="lab_t" placeholder="0"></div>
+                    <div class="form-group"><label>Femenino</label><input type="number" id="lab_f" placeholder="0"></div>
+                    <div class="form-group"><label>Masculino</label><input type="number" id="lab_m" placeholder="0"></div>
+                </div>
+
+                <div class="form-section-title">🩺 MÉDICO</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Total</label><input type="number" id="med_t" placeholder="0"></div>
+                    <div class="form-group"><label>Femenino</label><input type="number" id="med_f" placeholder="0"></div>
+                    <div class="form-group"><label>Masculino</label><input type="number" id="med_m" placeholder="0"></div>
+                </div>
+
+                <div class="form-section-title">🦷 ODONTOLOGÍA</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Total</label><input type="number" id="odonto_t" placeholder="0"></div>
+                    <div class="form-group"><label>Femenino</label><input type="number" id="odonto_f" placeholder="0"></div>
+                    <div class="form-group"><label>Masculino</label><input type="number" id="odonto_m" placeholder="0"></div>
+                </div>
+
+                <div class="form-section-title">🏃 EV. ATLÉTICA</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Total</label><input type="number" id="atletica_t" placeholder="0"></div>
+                    <div class="form-group"><label>Femenino</label><input type="number" id="atletica_f" placeholder="0"></div>
+                    <div class="form-group"><label>Masculino</label><input type="number" id="atletica_m" placeholder="0"></div>
+                </div>
+
+                <div class="form-section-title">🌿 EV. SOCIOAMBIENTAL</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Turno T</label><input type="number" id="socio_turno_t" placeholder="0"></div>
+                    <div class="form-group"><label>Turno F</label><input type="number" id="socio_turno_f" placeholder="0"></div>
+                    <div class="form-group"><label>Turno M</label><input type="number" id="socio_turno_m" placeholder="0"></div>
+                    <div class="form-group"><label>Proceso</label><input type="number" id="socio_proceso_t" placeholder="0"></div>
+                    <div class="form-group"><label>Pend.</label><input type="number" id="socio_pend_t" placeholder="0"></div>
+                    <div class="form-group"><label>Ausentes</label><input type="number" id="socio_ausente_t" placeholder="0"></div>
+                    <div class="form-group"><label>Total</label><input type="number" id="socio_total_t" placeholder="0"></div>
+                    <div class="form-group"><label>Total F</label><input type="number" id="socio_total_f" placeholder="0"></div>
+                    <div class="form-group"><label>Total M</label><input type="number" id="socio_total_m" placeholder="0"></div>
+                </div>
+
+                <div class="form-section-title">📋 ENTREVISTA ADMINISTRATIVA</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Turno T</label><input type="number" id="admin_turno_t" placeholder="0"></div>
+                    <div class="form-group"><label>Turno F</label><input type="number" id="admin_turno_f" placeholder="0"></div>
+                    <div class="form-group"><label>Turno M</label><input type="number" id="admin_turno_m" placeholder="0"></div>
+                    <div class="form-group"><label>Ausente T</label><input type="number" id="admin_ausente_t" placeholder="0"></div>
+                    <div class="form-group"><label>Ausente F</label><input type="number" id="admin_ausente_f" placeholder="0"></div>
+                    <div class="form-group"><label>Ausente M</label><input type="number" id="admin_ausente_m" placeholder="0"></div>
+                    <div class="form-group"><label>Total</label><input type="number" id="admin_total_t" placeholder="0"></div>
+                    <div class="form-group"><label>Total F</label><input type="number" id="admin_total_f" placeholder="0"></div>
+                    <div class="form-group"><label>Total M</label><input type="number" id="admin_total_m" placeholder="0"></div>
+                </div>
+
+                <div class="form-section-title">📄 DOCUMENTACIÓN</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Turno T</label><input type="number" id="doc_turno_t" placeholder="0"></div>
+                    <div class="form-group"><label>Turno F</label><input type="number" id="doc_turno_f" placeholder="0"></div>
+                    <div class="form-group"><label>Turno M</label><input type="number" id="doc_turno_m" placeholder="0"></div>
+                    <div class="form-group"><label>Ausente T</label><input type="number" id="doc_ausente_t" placeholder="0"></div>
+                    <div class="form-group"><label>Ausente F</label><input type="number" id="doc_ausente_f" placeholder="0"></div>
+                    <div class="form-group"><label>Ausente M</label><input type="number" id="doc_ausente_m" placeholder="0"></div>
+                    <div class="form-group"><label>Total</label><input type="number" id="doc_total_t" placeholder="0"></div>
+                    <div class="form-group"><label>Total F</label><input type="number" id="doc_total_f" placeholder="0"></div>
+                    <div class="form-group"><label>Total M</label><input type="number" id="doc_total_m" placeholder="0"></div>
+                </div>
+
+                <div class="form-section-title">📊 TOTALES GENERALES</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Proceso T</label><input type="number" id="proceso_t" placeholder="0"></div>
+                    <div class="form-group"><label>Proceso F</label><input type="number" id="proceso_f" placeholder="0"></div>
+                    <div class="form-group"><label>Proceso M</label><input type="number" id="proceso_m" placeholder="0"></div>
+                    <div class="form-group"><label>Potencial T</label><input type="number" id="potencial_t" placeholder="0"></div>
+                    <div class="form-group"><label>Potencial F</label><input type="number" id="potencial_f" placeholder="0"></div>
+                    <div class="form-group"><label>Potencial M</label><input type="number" id="potencial_m" placeholder="0"></div>
+                </div>
+
+                <div style="margin-top:1.5rem;display:flex;gap:.75rem;flex-wrap:wrap">
+                    <button class="btn btn-success" id="btnGuardar" onclick="guardarDatos()">💾 Guardar en Google Sheets</button>
+                    <button class="btn btn-secondary" onclick="clearForm()">🗑️ Limpiar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIG -->
+        <div id="config" class="tab-content">
+            <div class="config-section">
+                <h3>⚙️ Configuración de Google Sheets</h3>
+                
+                <h4 style="color:var(--accent-amber);margin:1rem 0 .5rem;font-size:.9rem">Paso 1: ID de la Hoja (para LEER datos)</h4>
+                <div class="config-row">
+                    <input type="text" id="sheetId" placeholder="ID del Google Sheet">
+                    <button class="btn btn-primary" onclick="connectSheet()">🔗 Conectar</button>
+                    <button class="btn btn-secondary" onclick="loadFromSheet()">🔄 Actualizar</button>
+                </div>
+
+                <h4 style="color:var(--accent-amber);margin:1rem 0 .5rem;font-size:.9rem">Paso 2: URL del Script (para ESCRIBIR datos)</h4>
+                <div class="config-row">
+                    <input type="text" id="scriptUrl" placeholder="URL del Web App (termina en /exec)">
+                    <button class="btn btn-primary" onclick="saveScriptUrl()">💾 Guardar</button>
+                </div>
+
+                <div id="configStatus" class="status-box"></div>
+
+                <div class="instructions">
+                    <h4>📋 Instrucciones de configuración:</h4>
+                    <ol>
+                        <li><strong>Crear Google Sheet:</strong> Andá a <a href="https://sheets.google.com" target="_blank" style="color:var(--accent-cyan)">sheets.google.com</a> y creá una hoja nueva</li>
+                        <li><strong>Encabezados:</strong> En la Fila 1, pegá:<code>fecha,lab_t,lab_f,lab_m,med_t,med_f,med_m,odonto_t,odonto_f,odonto_m,atletica_t,atletica_f,atletica_m,socio_turno_t,socio_turno_f,socio_turno_m,socio_proceso_t,socio_pend_t,socio_ausente_t,socio_total_t,socio_total_f,socio_total_m,admin_turno_t,admin_turno_f,admin_turno_m,admin_ausente_t,admin_ausente_f,admin_ausente_m,admin_total_t,admin_total_f,admin_total_m,doc_turno_t,doc_turno_f,doc_turno_m,doc_ausente_t,doc_ausente_f,doc_ausente_m,doc_total_t,doc_total_f,doc_total_m,proceso_t,proceso_f,proceso_m,potencial_t,potencial_f,potencial_m</code></li>
+                        <li><strong>Publicar para leer:</strong> Archivo → Compartir → Publicar en la web → CSV → Publicar</li>
+                        <li><strong>Copiar ID:</strong> De la URL copiá el ID (entre /d/ y /edit) y pegalo en "Paso 1"</li>
+                        <li><strong>Crear Script:</strong> En el Sheet, andá a <strong>Extensiones → Apps Script</strong></li>
+                        <li><strong>Pegar código:</strong> Borrá todo y pegá este código:<code>function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow(data);
+  return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput('Script activo');
+}</code></li>
+                        <li><strong>Implementar:</strong> Clic en <strong>Implementar → Nueva implementación</strong></li>
+                        <li><strong>Configurar:</strong> Tipo: "Aplicación web" → Acceso: "Cualquier persona" → Implementar</li>
+                        <li><strong>Autorizar:</strong> Revisá permisos → Seleccioná tu cuenta → Avanzado → Ir a (nombre) → Permitir</li>
+                        <li><strong>Copiar URL:</strong> Copiá la URL que termina en <code>/exec</code> y pegala en "Paso 2"</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Datos iniciales
+let data=[{"fecha":"2025-01-14","lab_t":255,"lab_f":124,"lab_m":131,"med_t":190,"med_f":136,"med_m":54,"odonto_t":6,"odonto_f":3,"odonto_m":3,"atletica_t":6,"atletica_f":6,"atletica_m":0,"socio_turno_t":39,"socio_turno_f":24,"socio_turno_m":15,"socio_proceso_t":0,"socio_pend_t":0,"socio_ausente_t":0,"socio_total_t":39,"socio_total_f":24,"socio_total_m":15,"admin_turno_t":21,"admin_turno_f":15,"admin_turno_m":6,"admin_ausente_t":7,"admin_ausente_f":4,"admin_ausente_m":3,"admin_total_t":28,"admin_total_f":19,"admin_total_m":9,"doc_turno_t":25,"doc_turno_f":6,"doc_turno_m":19,"doc_ausente_t":41,"doc_ausente_f":38,"doc_ausente_m":3,"doc_total_t":66,"doc_total_f":44,"doc_total_m":22,"proceso_t":590,"proceso_f":356,"proceso_m":234,"potencial_t":139,"potencial_f":93,"potencial_m":46},{"fecha":"2025-02-02","lab_t":195,"lab_f":110,"lab_m":85,"med_t":190,"med_f":106,"med_m":84,"odonto_t":11,"odonto_f":3,"odonto_m":8,"atletica_t":10,"atletica_f":7,"atletica_m":3,"socio_turno_t":0,"socio_turno_f":0,"socio_turno_m":0,"socio_proceso_t":0,"socio_pend_t":0,"socio_ausente_t":0,"socio_total_t":0,"socio_total_f":0,"socio_total_m":0,"admin_turno_t":35,"admin_turno_f":9,"admin_turno_m":26,"admin_ausente_t":2,"admin_ausente_f":2,"admin_ausente_m":0,"admin_total_t":37,"admin_total_f":11,"admin_total_m":26,"doc_turno_t":17,"doc_turno_f":7,"doc_turno_m":10,"doc_ausente_t":169,"doc_ausente_f":140,"doc_ausente_m":29,"doc_total_t":186,"doc_total_f":147,"doc_total_m":39,"proceso_t":629,"proceso_f":384,"proceso_m":245,"potencial_t":233,"potencial_f":165,"potencial_m":68}];
+
+let sheetId = localStorage.getItem('sheetId') || '';
+let scriptUrl = localStorage.getItem('scriptUrl') || '';
+let charts = {};
+const chartDefaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{family:'DM Sans',size:10}}}},scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(255,255,255,0.05)'}}}};
+
+const formFields = ['lab_t','lab_f','lab_m','med_t','med_f','med_m','odonto_t','odonto_f','odonto_m','atletica_t','atletica_f','atletica_m','socio_turno_t','socio_turno_f','socio_turno_m','socio_proceso_t','socio_pend_t','socio_ausente_t','socio_total_t','socio_total_f','socio_total_m','admin_turno_t','admin_turno_f','admin_turno_m','admin_ausente_t','admin_ausente_f','admin_ausente_m','admin_total_t','admin_total_f','admin_total_m','doc_turno_t','doc_turno_f','doc_turno_m','doc_ausente_t','doc_ausente_f','doc_ausente_m','doc_total_t','doc_total_f','doc_total_m','proceso_t','proceso_f','proceso_m','potencial_t','potencial_f','potencial_m'];
+
+// Guardar datos directamente a Google Sheets
+async function guardarDatos() {
+    if (!scriptUrl) {
+        showFormAlert('❌ Configurá la URL del Script en ⚙️ Configuración', 'error');
+        return;
+    }
+    
+    const fecha = document.getElementById('inputFecha').value;
+    if (!fecha) {
+        showFormAlert('❌ Ingresá una fecha', 'error');
+        return;
+    }
+
+    const rowData = [fecha];
+    formFields.forEach(f => {
+        rowData.push(parseInt(document.getElementById(f).value) || 0);
+    });
+
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = '⏳ Guardando...';
+
+    try {
+        await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rowData)
+        });
+        
+        showFormAlert('✅ Datos guardados! Actualizando...', 'success');
+        clearForm();
+        
+        // Esperar y recargar datos
+        setTimeout(() => loadFromSheet(), 2000);
+        
+    } catch (err) {
+        showFormAlert('❌ Error: ' + err.message, 'error');
+    }
+    
+    btn.disabled = false;
+    btn.textContent = '💾 Guardar en Google Sheets';
+}
+
+function saveScriptUrl() {
+    const url = document.getElementById('scriptUrl').value.trim();
+    if (!url) {
+        showConfigStatus('❌ Ingresá la URL del script', 'error');
+        return;
+    }
+    scriptUrl = url;
+    localStorage.setItem('scriptUrl', url);
+    updateConnectionStatus();
+    showConfigStatus('✅ URL guardada', 'success');
+}
+
+function updateConnectionStatus() {
+    const status = document.getElementById('connectionStatus');
+    if (scriptUrl && sheetId) {
+        status.className = 'connection-status connected';
+        status.innerHTML = '<span class="dot"></span><span>✅ Conectado a Google Sheets</span>';
+    } else {
+        status.className = 'connection-status disconnected';
+        status.innerHTML = '<span class="dot"></span><span>⚠️ Configurá Google Sheets en ⚙️</span>';
+    }
+}
+
+function clearForm() {
+    document.getElementById('inputFecha').value = '';
+    formFields.forEach(f => document.getElementById(f).value = '');
+}
+
+function showFormAlert(msg, type) {
+    const alert = document.getElementById('formAlert');
+    alert.textContent = msg;
+    alert.className = 'status-box show ' + type;
+    setTimeout(() => alert.className = 'status-box', 4000);
+}
+
+function showConfigStatus(msg, type) {
+    const box = document.getElementById('configStatus');
+    box.textContent = msg;
+    box.className = 'status-box show ' + type;
+    setTimeout(() => box.className = 'status-box', 3000);
+}
+
+// Google Sheets - Leer
+function connectSheet() {
+    const id = document.getElementById('sheetId').value.trim();
+    if (!id) { showConfigStatus('❌ Ingresá el ID', 'error'); return; }
+    sheetId = id;
+    localStorage.setItem('sheetId', id);
+    updateConnectionStatus();
+    loadFromSheet();
+}
+
+async function loadFromSheet() {
+    if (!sheetId) { showConfigStatus('⚠️ Configurá el ID primero', 'info'); return; }
+    showConfigStatus('⏳ Cargando...', 'info');
+    try {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&_=${Date.now()}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('No se pudo acceder');
+        const csv = await response.text();
+        const parsed = parseCSV(csv);
+        if (parsed.length > 0) {
+            data = parsed;
+            data.sort((a, b) => a.fecha.localeCompare(b.fecha));
+            refreshAll();
+            showConfigStatus(`✅ ${data.length} días cargados`, 'success');
+            document.getElementById('lastUpdate').textContent = `Actualizado: ${new Date().toLocaleTimeString('es-AR')}`;
+        } else {
+            showConfigStatus('⚠️ Hoja vacía', 'error');
+        }
+    } catch (err) {
+        showConfigStatus('❌ Error: ' + err.message, 'error');
+    }
+}
+
+function parseCSV(csv) {
+    const lines = csv.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+    const result = [];
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+        const obj = {};
+        headers.forEach((h, idx) => {
+            if (h === 'fecha') obj[h] = values[idx];
+            else obj[h] = parseInt(values[idx]) || 0;
+        });
+        if (obj.fecha) result.push(obj);
+    }
+    return result;
+}
+
+// Charts & UI
+function getLabels(){return data.map(d=>{const date=new Date(d.fecha+'T12:00:00');return date.toLocaleDateString('es-AR',{day:'2-digit',month:'short'})});}
+function initCharts(){const labels=getLabels();Object.values(charts).forEach(c=>c.destroy());charts.enProceso=new Chart(document.getElementById('chartEnProceso'),{type:'line',data:{labels,datasets:[{label:'Total',data:data.map(d=>d.proceso_t),borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,0.1)',fill:true,tension:0.4},{label:'F',data:data.map(d=>d.proceso_f),borderColor:'#f43f5e',borderDash:[5,5],tension:0.4},{label:'M',data:data.map(d=>d.proceso_m),borderColor:'#3b82f6',borderDash:[5,5],tension:0.4}]},options:chartDefaults});charts.potencial=new Chart(document.getElementById('chartPotencial'),{type:'line',data:{labels,datasets:[{label:'Potencial',data:data.map(d=>d.potencial_t),borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',fill:true,tension:0.4}]},options:chartDefaults});charts.labMed=new Chart(document.getElementById('chartLabMed'),{type:'bar',data:{labels,datasets:[{label:'Lab',data:data.map(d=>d.lab_t),backgroundColor:'rgba(59,130,246,0.7)',borderRadius:3},{label:'Méd',data:data.map(d=>d.med_t),backgroundColor:'rgba(16,185,129,0.7)',borderRadius:3}]},options:chartDefaults});charts.adminDoc=new Chart(document.getElementById('chartAdminDoc'),{type:'bar',data:{labels,datasets:[{label:'Admin',data:data.map(d=>d.admin_total_t),backgroundColor:'rgba(249,115,22,0.7)',borderRadius:3},{label:'Doc',data:data.map(d=>d.doc_total_t),backgroundColor:'rgba(244,63,94,0.7)',borderRadius:3}]},options:chartDefaults});charts.labTrend=new Chart(document.getElementById('chartLabTrend'),{type:'line',data:{labels,datasets:[{label:'T',data:data.map(d=>d.lab_t),borderColor:'#3b82f6',tension:0.4},{label:'F',data:data.map(d=>d.lab_f),borderColor:'#f43f5e',borderDash:[3,3],tension:0.4},{label:'M',data:data.map(d=>d.lab_m),borderColor:'#22d3ee',borderDash:[3,3],tension:0.4}]},options:chartDefaults});charts.medTrend=new Chart(document.getElementById('chartMedTrend'),{type:'line',data:{labels,datasets:[{label:'T',data:data.map(d=>d.med_t),borderColor:'#10b981',tension:0.4},{label:'F',data:data.map(d=>d.med_f),borderColor:'#f43f5e',borderDash:[3,3],tension:0.4},{label:'M',data:data.map(d=>d.med_m),borderColor:'#22d3ee',borderDash:[3,3],tension:0.4}]},options:chartDefaults});charts.adminTrend=new Chart(document.getElementById('chartAdminTrend'),{type:'line',data:{labels,datasets:[{label:'Total',data:data.map(d=>d.admin_total_t),borderColor:'#f97316',tension:0.4},{label:'Turno',data:data.map(d=>d.admin_turno_t),borderColor:'#fbbf24',borderDash:[3,3],tension:0.4},{label:'Ausente',data:data.map(d=>d.admin_ausente_t),borderColor:'#ef4444',borderDash:[3,3],tension:0.4}]},options:chartDefaults});charts.docTrend=new Chart(document.getElementById('chartDocTrend'),{type:'line',data:{labels,datasets:[{label:'Total',data:data.map(d=>d.doc_total_t),borderColor:'#f43f5e',tension:0.4},{label:'Turno',data:data.map(d=>d.doc_turno_t),borderColor:'#a855f7',borderDash:[3,3],tension:0.4},{label:'Ausente',data:data.map(d=>d.doc_ausente_t),borderColor:'#64748b',borderDash:[3,3],tension:0.4}]},options:chartDefaults});}
+function renderKPIs(){const l=data[data.length-1];document.getElementById('kpiGrid').innerHTML=`<div class="kpi-card blue"><div class="kpi-label">En Proceso</div><div class="kpi-value">${l.proceso_t}</div><div class="kpi-detail"><span class="female">F:${l.proceso_f}</span> | <span class="male">M:${l.proceso_m}</span></div></div><div class="kpi-card emerald"><div class="kpi-label">Potencial</div><div class="kpi-value">${l.potencial_t}</div><div class="kpi-detail"><span class="female">F:${l.potencial_f}</span> | <span class="male">M:${l.potencial_m}</span></div></div><div class="kpi-card amber"><div class="kpi-label">Laboratorio</div><div class="kpi-value">${l.lab_t}</div></div><div class="kpi-card rose"><div class="kpi-label">Médico</div><div class="kpi-value">${l.med_t}</div></div><div class="kpi-card teal"><div class="kpi-label">Socioambiental</div><div class="kpi-value">${l.socio_total_t}</div></div><div class="kpi-card orange"><div class="kpi-label">Ent. Admin</div><div class="kpi-value">${l.admin_total_t}</div></div><div class="kpi-card purple"><div class="kpi-label">Documentación</div><div class="kpi-value">${l.doc_total_t}</div></div><div class="kpi-card cyan"><div class="kpi-label">Días</div><div class="kpi-value">${data.length}</div></div>`;}
+function fmtS(f){const d=new Date(f+'T12:00:00');return d.toLocaleDateString('es-AR',{day:'2-digit',month:'short'});}
+function fmtL(f){const d=new Date(f+'T12:00:00');return d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
+function renderSummaryTable(){document.getElementById('summaryTableBody').innerHTML=data.map(d=>`<tr><td>${fmtS(d.fecha)}</td><td>${d.lab_t}</td><td>${d.med_t}</td><td>${d.odonto_t}</td><td>${d.atletica_t}</td><td>${d.socio_total_t}</td><td>${d.admin_total_t}</td><td>${d.doc_total_t}</td><td>${d.proceso_t}</td><td>${d.potencial_t}</td></tr>`).join('');}
+function renderDaySelector(){const sel=document.getElementById('daySelector');const cont=document.getElementById('dailyContents');sel.innerHTML='';cont.innerHTML='';data.forEach((d,idx)=>{const btn=document.createElement('div');btn.className='day-btn'+(idx===data.length-1?' active':'');btn.textContent=fmtS(d.fecha);btn.dataset.index=idx;btn.onclick=()=>selectDay(idx);sel.appendChild(btn);const content=document.createElement('div');content.className='daily-content'+(idx===data.length-1?' active':'');content.id='day-'+idx;content.innerHTML=`<div class="daily-header"><div class="daily-date">${fmtL(d.fecha)}</div><div class="daily-totals"><div class="daily-total-item"><div class="daily-total-label">Proceso</div><div class="daily-total-value proceso">${d.proceso_t}</div></div><div class="daily-total-item"><div class="daily-total-label">Potencial</div><div class="daily-total-value potencial">${d.potencial_t}</div></div></div></div><div class="section-grid">${secCard('laboratorio','🔬 Lab',d.lab_t,d.lab_f,d.lab_m)}${secCard('medico','🩺 Méd',d.med_t,d.med_f,d.med_m)}${secCard('odontologia','🦷 Odonto',d.odonto_t,d.odonto_f,d.odonto_m)}${secCard('atletica','🏃 Atlét',d.atletica_t,d.atletica_f,d.atletica_m)}${secCardD('socioambiental','🌿 Socio',d.socio_total_t,d.socio_total_f,d.socio_total_m,[['Turno',d.socio_turno_t],['Proceso',d.socio_proceso_t],['Ausentes',d.socio_ausente_t]])}${secCardD('admin','📋 Admin',d.admin_total_t,d.admin_total_f,d.admin_total_m,[['Turno',d.admin_turno_t],['Ausentes',d.admin_ausente_t]])}${secCardD('documentacion','📄 Doc',d.doc_total_t,d.doc_total_f,d.doc_total_m,[['Turno',d.doc_turno_t],['Ausentes',d.doc_ausente_t]])}</div>`;cont.appendChild(content);});}
+function secCard(cls,title,t,f,m){return `<div class="section-card"><div class="section-header ${cls}"><span>${title}</span><span class="section-total">${t}</span></div><div class="section-body"><div class="gender-bars"><div class="gender-row"><span class="gender-label">F</span><div class="gender-bar-container"><div class="gender-bar female" style="width:${t>0?(f/t)*100:0}%"></div></div><span class="gender-value">${f}</span></div><div class="gender-row"><span class="gender-label">M</span><div class="gender-bar-container"><div class="gender-bar male" style="width:${t>0?(m/t)*100:0}%"></div></div><span class="gender-value">${m}</span></div></div></div></div>`;}
+function secCardD(cls,title,t,f,m,details){return `<div class="section-card"><div class="section-header ${cls}"><span>${title}</span><span class="section-total">${t}</span></div><div class="section-body"><div class="gender-bars"><div class="gender-row"><span class="gender-label">F</span><div class="gender-bar-container"><div class="gender-bar female" style="width:${t>0?(f/t)*100:0}%"></div></div><span class="gender-value">${f}</span></div><div class="gender-row"><span class="gender-label">M</span><div class="gender-bar-container"><div class="gender-bar male" style="width:${t>0?(m/t)*100:0}%"></div></div><span class="gender-value">${m}</span></div></div><div class="detail-rows">${details.map(d=>`<div class="detail-row"><span>${d[0]}</span><span>${d[1]}</span></div>`).join('')}</div></div></div>`;}
+function selectDay(idx){document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.daily-content').forEach(c=>c.classList.remove('active'));document.querySelector(`.day-btn[data-index="${idx}"]`).classList.add('active');document.getElementById('day-'+idx).classList.add('active');}
+function updateDateRange(){document.getElementById('dateRangeDisplay').textContent=`${fmtS(data[0].fecha)} - ${fmtS(data[data.length-1].fecha)} 2025`;}
+function refreshAll(){renderKPIs();renderSummaryTable();renderDaySelector();updateDateRange();initCharts();}
+
+// Tab navigation
+document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));tab.classList.add('active');document.getElementById(tab.dataset.tab).classList.add('active');});});
+
+// Init
+const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+document.getElementById('inputFecha').value = tomorrow.toISOString().split('T')[0];
+document.getElementById('sheetId').value = sheetId;
+document.getElementById('scriptUrl').value = scriptUrl;
+updateConnectionStatus();
+if (sheetId) loadFromSheet();
+else refreshAll();
+</script>
+</body>
+</html>

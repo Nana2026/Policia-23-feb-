@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Postulantes — Policía y Bomberos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#F4F5F7;color:#1a1a1a;font-size:14px}
+.topbar{background:#1F2D3D;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.topbar-t{font-size:17px;font-weight:700;letter-spacing:.02em}
+.topbar-s{font-size:12px;opacity:.65;margin-top:2px}
+.toggle{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid rgba(255,255,255,.25)}
+.tb{padding:7px 20px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;color:rgba(255,255,255,.7);transition:all .15s}
+.tb.ap{background:#185FA5;color:#fff}
+.tb.af{background:#993C1D;color:#fff}
+.main{max-width:1100px;margin:0 auto;padding:20px 16px}
+.nav{display:flex;background:#fff;border-radius:10px;padding:4px;margin-bottom:16px;gap:4px;border:1px solid #E0E4EA}
+.nb{flex:1;padding:8px 12px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;color:#666;border-radius:7px;transition:all .15s;text-align:center}
+.nb.a-p{background:#185FA5;color:#fff}
+.nb.a-b{background:#993C1D;color:#fff}
+.nb:hover:not(.a-p):not(.a-b){background:#F1F3F6}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px}
+.sc{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #E0E4EA}
+.sl{font-size:11px;color:#888;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.sv{font-size:26px;font-weight:700}
+.row2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}
+.row1{margin-bottom:14px}
+.cc{background:#fff;border-radius:10px;padding:16px 18px;border:1px solid #E0E4EA}
+.ct{font-size:12px;font-weight:700;color:#555;margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.leg{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.li{display:flex;align-items:center;gap:5px;font-size:12px;color:#666}
+.ld{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:#F7F8FA}
+th{padding:9px 10px;text-align:left;font-weight:700;font-size:11px;color:#555;border-bottom:2px solid #E0E4EA;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
+td{padding:9px 10px;vertical-align:middle;border-bottom:1px solid #F0F2F5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F7F9FC}
+.bk{display:inline-block;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.ba{background:#E8F5E9;color:#2E7D32}
+.bn{background:#FFF3E0;color:#E65100}
+.bd{background:#FFEBEE;color:#C62828}
+.bu{background:#ECEFF1;color:#455A64}
+.btn{padding:7px 14px;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;border:1.5px solid #D0D5DD;background:#fff;color:#333;transition:all .15s}
+.btn:hover{background:#F1F3F6;border-color:#B0B8C8}
+.btn-p{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-p:hover{background:#0C447C}
+.btn-b{background:#993C1D;color:#fff;border-color:#993C1D}
+.btn-b:hover{background:#712B13}
+.btn-d{color:#C62828;border-color:#F5C6C6;background:#fff}
+.btn-d:hover{background:#FFEBEE}
+.btn-sm{padding:4px 10px;font-size:11px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.mt{font-size:15px;font-weight:700}
+.xb{background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1;padding:0 4px}
+.xb:hover{color:#333}
+.fi{width:100%;padding:8px 10px;font-size:13px;border:1.5px solid #D0D5DD;border-radius:8px;background:#fff;color:#1a1a1a;transition:border .15s}
+.fi:focus{outline:none;border-color:#185FA5}
+.fl{font-size:11px;font-weight:700;color:#555;margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.04em}
+.sd{font-size:10px;font-weight:700;color:#888;border-bottom:2px solid #F0F2F5;padding-bottom:6px;margin:14px 0 10px;letter-spacing:.06em;text-transform:uppercase}
+.rank{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.tw{overflow-x:auto}
+.emp{text-align:center;padding:2.5rem;color:#999;font-size:14px}
+.ferr{color:#C62828;font-size:12px;margin-bottom:8px;display:none;padding:8px;background:#FFEBEE;border-radius:6px}
+.sync-bar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#1F2D3D;color:rgba(255,255,255,.7);font-size:11px;border-top:1px solid rgba(255,255,255,.1)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#9E9E9E;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:#4CAF50}
+.sync-dot.err{background:#F44336}
+.sync-dot.loading{background:#FFC107;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.cfg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:1rem}
+.cfg-overlay.open{display:flex}
+.cfg-box{background:#fff;border-radius:14px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.actions{display:flex;gap:6px}
+@media(max-width:640px){.row2{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-t">Gestión de Postulantes</div>
+    <div class="topbar-s" id="hdr-s">Proceso de selección — Policía</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div class="toggle">
+      <button class="tb ap" id="btn-pol" onclick="setCuerpo('policia')">Policía</button>
+      <button class="tb" id="btn-bom" onclick="setCuerpo('bomberos')">Bomberos</button>
+    </div>
+    <button class="btn btn-p" id="btn-add" onclick="openModal(null)" style="border-radius:8px">+ Agregar</button>
+
+  </div>
+</div>
+
+<div class="sync-bar" id="sync-bar">
+  <span class="sync-dot" id="sync-dot"></span>
+  <span id="sync-msg">Configurá la sincronización para compartir datos en tiempo real</span>
+  <button onclick="openCfg()" style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:3px 10px;border-radius:6px;font-size:11px;cursor:pointer">&#9881; Configurar</button>
+</div>
+
+<div class="cfg-overlay" id="cfg-overlay">
+  <div class="cfg-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:16px;font-weight:700">Configurar sincronización</span>
+      <button onclick="closeCfg()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">×</button>
+    </div>
+    <p style="font-size:12px;color:#666;margin-bottom:18px;line-height:1.6">Usamos <strong>JSONBin</strong> (gratis) para guardar los datos en la nube. Seguí estos pasos:</p>
+    <div style="background:#F8F9FA;border-radius:8px;padding:14px;font-size:12px;color:#444;line-height:1.8;margin-bottom:18px">
+      <strong>1.</strong> Entrá a <a href="https://jsonbin.io" target="_blank" style="color:#1565C0">jsonbin.io</a> y creá una cuenta gratuita<br>
+      <strong>2.</strong> Andá a <em>API Keys</em> y copiá tu clave<br>
+      <strong>3.</strong> Creá un nuevo <em>Bin</em> con este contenido: <code style="background:#eee;padding:2px 5px;border-radius:4px">{"policia":[],"bomberos":[],"nextId":1}</code><br>
+      <strong>4.</strong> Copiá el <em>Bin ID</em> (está en la URL)<br>
+      <strong>5.</strong> Pegá ambos acá abajo y listo
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+      <div><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">API Key de JSONBin</label>
+        <input id="cfg-key" type="text" placeholder="$2b$10$..." style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid #D0D5DD;border-radius:8px"></div>
+      <div><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">Bin ID</label>
+        <input id="cfg-bin" type="text" placeholder="64abc123..." style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid #D0D5DD;border-radius:8px"></div>
+    </div>
+    <div id="cfg-err" style="color:#C62828;font-size:12px;margin-bottom:10px;display:none"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="saveCfg()" class="btn btn-p" style="flex:1">Conectar</button>
+      <button onclick="clearCfg()" class="btn btn-d">Desconectar</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="nav">
+    <button class="nb" id="nb-dash" onclick="showView('dash')">Dashboard</button>
+    <button class="nb" id="nb-lista" onclick="showView('lista')">Postulantes</button>
+    <button class="nb" id="nb-merito" onclick="showView('merito')">Orden de mérito</button>
+  </div>
+  <div id="v-dash"></div>
+  <div id="v-lista" style="display:none"></div>
+  <div id="v-merito" style="display:none"></div>
+</div>
+
+<div class="overlay" id="modal-wrap">
+  <div class="modal">
+    <div class="mh">
+      <span class="mt" id="modal-t">Agregar postulante</span>
+      <button class="xb" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const ETAPAS=[
+  {key:'psico2',label:'Psico. 2da Inst.'},
+  {key:'laboratorio',label:'Laboratorio'},
+  {key:'medico',label:'Médico'},
+  {key:'atletismo',label:'Atletismo'},
+  {key:'socioambiental',label:'Socioambiental'},
+  {key:'entrevistaPol',label:'Entrevista Policial'},
+  {key:'intelectual',label:'Intelectual'},
+  {key:'documentacion',label:'Documentación'},
+];
+const NOTAS=[
+  {key:'nPsico',label:'Psicología'},
+  {key:'nAtletismo',label:'Atletismo'},
+  {key:'nSocioamb',label:'Socioamb.'},
+  {key:'nEntrev',label:'Entrev. Pol.'},
+  {key:'nIntelectual',label:'Intelectual'},
+];
+const CAUSAS={
+  psico2:[
+    'Trastorno de personalidad',
+    'Alteración del juicio de realidad',
+    'Impulsividad severa',
+    'Inestabilidad emocional',
+    'Baja tolerancia a la frustración',
+    'Consumo problemático de sustancias',
+    'Otro'
+  ]
+};
+const LV={A:4,B:3,C:2,D:1};
+const R_OPS=['','Apto','NAT','NAD','Ausente'];
+const N_OPS=['','A','B','C','D'];
+let cuerpo='policia',view='dash',editId=null,charts={};
+let data={policia:[],bomberos:[]},nextId=1;
+let fq='',fe='',fr='';
+
+function sampleData(){
+  return{policia:[
+    {id:1,nombre:'García, Carlos Alberto',dni:'25.678.901',sexo:'M',edad:25,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'Apto',socioambiental:'Apto',entrevistaPol:'Apto',intelectual:'Apto',documentacion:'Apto'},notas:{nPsico:'A',nAtletismo:'A',nSocioamb:'B',nEntrev:'A',nIntelectual:'B'}},
+    {id:2,nombre:'Rodríguez, María Fernanda',dni:'30.123.456',sexo:'F',edad:22,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'Apto',socioambiental:'Apto',entrevistaPol:'NAT',intelectual:'',documentacion:''},notas:{nPsico:'B',nAtletismo:'B',nSocioamb:'',nEntrev:'',nIntelectual:''}},
+    {id:3,nombre:'López, Juan Manuel',dni:'28.345.678',sexo:'M',edad:27,etapas:{psico2:'Apto',laboratorio:'NAT',medico:'',atletismo:'',socioambiental:'',entrevistaPol:'',intelectual:'',documentacion:''},notas:{nPsico:'',nAtletismo:'',nSocioamb:'',nEntrev:'',nIntelectual:''}},
+    {id:4,nombre:'Martínez, Ana Laura',dni:'33.456.789',sexo:'F',edad:21,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'NAT',socioambiental:'',entrevistaPol:'',intelectual:'',documentacion:''},notas:{nPsico:'',nAtletismo:'',nSocioamb:'',nEntrev:'',nIntelectual:''}},
+    {id:5,nombre:'Torres, Diego Sebastián',dni:'26.789.012',sexo:'M',edad:28,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'Apto',socioambiental:'Apto',entrevistaPol:'Apto',intelectual:'Apto',documentacion:'Apto'},notas:{nPsico:'B',nAtletismo:'A',nSocioamb:'A',nEntrev:'B',nIntelectual:'A'}},
+    {id:6,nombre:'Fernández, Lucía',dni:'31.234.567',sexo:'F',edad:23,etapas:{psico2:'NAD',laboratorio:'',medico:'',atletismo:'',socioambiental:'',entrevistaPol:'',intelectual:'',documentacion:''},notas:{nPsico:'',nAtletismo:'',nSocioamb:'',nEntrev:'',nIntelectual:''}},
+    {id:7,nombre:'Sánchez, Roberto',dni:'24.567.890',sexo:'M',edad:30,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'Apto',socioambiental:'Apto',entrevistaPol:'Apto',intelectual:'Apto',documentacion:'Apto'},notas:{nPsico:'A',nAtletismo:'B',nSocioamb:'A',nEntrev:'A',nIntelectual:'A'}},
+    {id:8,nombre:'Díaz, Carolina',dni:'29.876.543',sexo:'F',edad:24,etapas:{psico2:'Ausente',laboratorio:'',medico:'',atletismo:'',socioambiental:'',entrevistaPol:'',intelectual:'',documentacion:''},notas:{nPsico:'',nAtletismo:'',nSocioamb:'',nEntrev:'',nIntelectual:''}},
+    {id:13,nombre:'Acosta, Ramiro Nicolás',dni:'35.111.222',sexo:'M',edad:23,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'Apto',socioambiental:'Apto',entrevistaPol:'Apto',intelectual:'Apto',documentacion:'Apto'},notas:{nPsico:'D',nAtletismo:'B',nSocioamb:'C',nEntrev:'D',nIntelectual:'C'}},
+  ],bomberos:[
+    {id:9,nombre:'Pérez, Martín Ezequiel',dni:'27.654.321',sexo:'M',edad:26,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'Apto',socioambiental:'Apto',entrevistaPol:'Apto',intelectual:'Apto',documentacion:'Apto'},notas:{nPsico:'B',nAtletismo:'B',nSocioamb:'B',nEntrev:'A',nIntelectual:'B'}},
+    {id:10,nombre:'González, Valeria',dni:'32.109.876',sexo:'F',edad:22,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'NAT',socioambiental:'',entrevistaPol:'',intelectual:'',documentacion:''},notas:{nPsico:'',nAtletismo:'',nSocioamb:'',nEntrev:'',nIntelectual:''}},
+    {id:11,nombre:'Herrera, Pablo',dni:'25.432.109',sexo:'M',edad:29,etapas:{psico2:'Apto',laboratorio:'NAD',medico:'',atletismo:'',socioambiental:'',entrevistaPol:'',intelectual:'',documentacion:''},notas:{nPsico:'',nAtletismo:'',nSocioamb:'',nEntrev:'',nIntelectual:''}},
+    {id:12,nombre:'Castro, Daniela',dni:'34.567.890',sexo:'F',edad:20,etapas:{psico2:'Apto',laboratorio:'Apto',medico:'Apto',atletismo:'Apto',socioambiental:'Apto',entrevistaPol:'Apto',intelectual:'Apto',documentacion:'Apto'},notas:{nPsico:'A',nAtletismo:'A',nSocioamb:'B',nEntrev:'B',nIntelectual:'A'}},
+  ],nextId:13};
+}
+
+function prom(p){
+  const validas=NOTAS.filter(n=>['A','B','C','D'].includes(p.notas[n.key]));
+  if(validas.length<NOTAS.length)return null;
+  return validas.reduce((s,n)=>s+LV[p.notas[n.key]],0)/validas.length;
+}
+function promDetalle(p){
+  const partes=NOTAS.map(n=>{
+    const l=p.notas[n.key];
+    if(!['A','B','C','D'].includes(l))return null;
+    return{label:n.label,letra:l,valor:LV[l]};
+  }).filter(Boolean);
+  if(partes.length<NOTAS.length)return null;
+  const suma=partes.reduce((s,x)=>s+x.valor,0);
+  return{partes,suma,count:partes.length,avg:suma/partes.length};
+}
+function badge(v){
+  if(!v)return'<span style="color:#bbb;font-size:10px">—</span>';
+  const c=v==='Apto'?'ba':v==='NAT'?'bn':v==='NAD'?'bd':'bu';
+  return`<span class="bk ${c}">${v}</span>`;
+}
+function lbadge(v){
+  if(!v)return'<span style="color:#bbb">—</span>';
+  const m={A:'#E8F5E9:#2E7D32',B:'#E3F2FD:#1565C0',C:'#FFF3E0:#E65100',D:'#FFEBEE:#C62828'};
+  const[bg,fg]=(m[v]||'#F5F5F5:#555').split(':');
+  if(v==='D')return`<span class="bk" style="background:#FFCDD2;color:#B71C1C;border:2px solid #E53935;font-weight:700">${v}</span>`;
+  return`<span class="bk" style="background:${bg};color:${fg}">${v}</span>`;
+}
+function ac(){return cuerpo==='policia'?'#185FA5':'#993C1D'}
+function cl(){return cuerpo==='policia'?'Policía':'Bomberos'}
+function ps(){return data[cuerpo]||[]}
+
+// ── Sync ──────────────────────────────────────────────────────────────
+let syncKey='$2a$10$2xPPW8deUpZK5HDtQ12IA.eJE2TWCraoecq4E.mNLusSPqQii6PXe',syncBin='69c5e554aa77b81da923bd09',syncTimer=null;
+
+function cfgLoaded(){
+  return !!(syncKey&&syncBin);
+}
+function openCfg(){
+  document.getElementById('cfg-key').value=syncKey;
+  document.getElementById('cfg-bin').value=syncBin;
+  document.getElementById('cfg-err').style.display='none';
+  document.getElementById('cfg-overlay').className='cfg-overlay open';
+}
+function closeCfg(){document.getElementById('cfg-overlay').className='cfg-overlay';}
+function saveCfg(){
+  const k=(document.getElementById('cfg-key').value||'').trim();
+  const b=(document.getElementById('cfg-bin').value||'').trim();
+  const err=document.getElementById('cfg-err');
+  if(!k||!b){err.textContent='Completá los dos campos.';err.style.display='block';return;}
+  localStorage.setItem('jb-key',k);localStorage.setItem('jb-bin',b);
+  syncKey=k;syncBin=b;
+  err.style.display='none';
+  closeCfg();
+  setSyncStatus('loading','Conectando...');
+  pullData(true);
+}
+function clearCfg(){
+  localStorage.removeItem('jb-key');localStorage.removeItem('jb-bin');
+  syncKey='';syncBin='';
+  if(syncTimer)clearInterval(syncTimer);
+  setSyncStatus('off','Sin sincronización — modo local');
+  closeCfg();
+}
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-msg');
+  dot.className='sync-dot'+(state==='ok'?' ok':state==='err'?' err':state==='loading'?' loading':'');
+  txt.textContent=msg;
+}
+function comprimirPostulante(p){
+  const e={},n={};
+  Object.keys(p.etapas).forEach(k=>{if(p.etapas[k])e[k]=p.etapas[k];});
+  Object.keys(p.notas).forEach(k=>{if(p.notas[k])n[k]=p.notas[k];});
+  const r={id:p.id,nombre:p.nombre,dni:p.dni};
+  if(p.sexo)r.sexo=p.sexo;
+  if(p.edad)r.edad=p.edad;
+  r.etapas=e;r.notas=n;
+  return r;
+}
+function expandirPostulante(p){
+  const etapasBase={psico2:'',laboratorio:'',medico:'',atletismo:'',socioambiental:'',entrevistaPol:'',intelectual:'',documentacion:''};
+  const notasBase={nPsico:'',nAtletismo:'',nSocioamb:'',nEntrev:'',nIntelectual:''};
+  return{
+    id:p.id,nombre:p.nombre||'',dni:p.dni||'',
+    sexo:p.sexo||'',edad:p.edad||null,
+    etapas:Object.assign({},etapasBase,p.etapas||{}),
+    notas:Object.assign({},notasBase,p.notas||{})
+  };
+}
+async function pushData(){
+  if(!syncKey||!syncBin)return;
+  setSyncStatus('loading','Guardando...');
+  try{
+    const payload={
+      policia:data.policia.map(comprimirPostulante),
+      bomberos:data.bomberos.map(comprimirPostulante),
+      nextId
+    };
+    const res=await fetch('https://api.jsonbin.io/v3/b/'+syncBin,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':syncKey,'X-Bin-Versioning':'false'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok)throw new Error(res.status);
+    const now=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('ok','Guardado a las '+now);
+  }catch(e){setSyncStatus('err','Error al guardar — revisá la conexión');}
+}
+async function pullData(force){
+  if(!syncKey||!syncBin)return;
+  if(!force)setSyncStatus('loading','Actualizando...');
+  try{
+    const res=await fetch('https://api.jsonbin.io/v3/b/'+syncBin+'/latest',{
+      headers:{'X-Master-Key':syncKey}
+    });
+    if(!res.ok)throw new Error(res.status);
+    const json=await res.json();
+    const r=json.record;
+    if(r&&r.policia&&r.bomberos){
+      data={policia:r.policia.map(expandirPostulante),bomberos:r.bomberos.map(expandirPostulante)};
+      nextId=r.nextId||1;
+      localStorage.setItem('postulantes-v3',JSON.stringify({data,nextId}));
+      render();
+      const now=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+      setSyncStatus('ok','Actualizado a las '+now);
+    }
+  }catch(e){setSyncStatus('err','Error al conectar — revisá API Key y Bin ID');}
+}
+function startAutoSync(){
+  if(syncTimer)clearInterval(syncTimer);
+  syncTimer=setInterval(()=>pullData(false),30000);
+}
+
+function saveData(){
+  try{localStorage.setItem('postulantes-v3',JSON.stringify({data,nextId}));}catch(e){}
+  pushData();
+}
+function loadData(){
+  try{const r=localStorage.getItem('postulantes-v3');if(r){const s=JSON.parse(r);data=s.data;nextId=s.nextId;return true;}}catch(e){}
+  return false;
+}
+
+function setCuerpo(c){
+  cuerpo=c;fq='';fe='';fr='';
+  document.getElementById('btn-pol').className='tb'+(c==='policia'?' ap':'');
+  document.getElementById('btn-bom').className='tb'+(c==='bomberos'?' af':'');
+  document.getElementById('btn-add').className='btn btn-sm '+(c==='policia'?'btn-p':'btn-b');
+  document.getElementById('hdr-s').textContent='Proceso de selección — '+cl();
+  document.getElementById('v-lista').innerHTML='';
+  updateNav();render();
+}
+
+function showView(v){view=v;updateNav();render();}
+
+function updateNav(){
+  const color=ac();
+  ['dash','lista','merito'].forEach(v=>{
+    const el=document.getElementById('nb-'+v);
+    el.className='nb'+(v===view?(' '+(cuerpo==='policia'?'a-p':'a-b')):'');
+    document.getElementById('v-'+v).style.display=v===view?'block':'none';
+  });
+}
+
+function destroyCharts(){Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};}
+
+function render(){
+  destroyCharts();
+  if(view==='dash')renderDash();
+  else if(view==='lista')renderLista();
+  else renderMerito();
+}
+
+function renderDash(){
+  const p=ps(),total=p.length;
+  const aptos=p.filter(x=>Object.values(x.etapas).includes('Apto')).length;
+  const nats=p.filter(x=>Object.values(x.etapas).includes('NAT')).length;
+  const nads=p.filter(x=>Object.values(x.etapas).includes('NAD')).length;
+  const aus=p.filter(x=>Object.values(x.etapas).includes('Ausente')).length;
+  const muj=p.filter(x=>x.sexo==='F').length;
+  const var_=p.filter(x=>x.sexo==='M').length;
+  document.getElementById('v-dash').innerHTML=`
+    <div class="stats">
+      <div class="sc"><div class="sl">Total</div><div class="sv" style="color:#1F2D3D">${total}</div></div>
+      <div class="sc"><div class="sl">Aptos</div><div class="sv" style="color:#2E7D32">${aptos}</div></div>
+      <div class="sc"><div class="sl">NAT</div><div class="sv" style="color:#E65100">${nats}</div></div>
+      <div class="sc"><div class="sl">NAD</div><div class="sv" style="color:#C62828">${nads}</div></div>
+      <div class="sc"><div class="sl">Ausentes</div><div class="sv" style="color:#546E7A">${aus}</div></div>
+      <div class="sc"><div class="sl">Mujeres</div><div class="sv" style="color:#7B1FA2">${muj}</div></div>
+      <div class="sc"><div class="sl">Hombres</div><div class="sv" style="color:#0097A7">${var_}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px" id="doc-cards"></div>
+    <div class="row1 cc">
+      <div class="ct">% de aptos por sexo en cada etapa</div>
+      <div style="display:flex;gap:14px;margin-bottom:10px">
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555"><span style="width:12px;height:12px;border-radius:3px;background:#0097A7;display:inline-block"></span>Hombres</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555"><span style="width:12px;height:12px;border-radius:3px;background:#7B1FA2;display:inline-block"></span>Mujeres</span>
+      </div>
+      <div style="position:relative;height:280px"><canvas id="c-sx"></canvas></div>
+    </div>
+    <div class="row1 cc">
+      <div class="ct">Cantidad de aptos acumulados por etapa (las mismas personas avanzando)</div>
+      <div style="display:flex;gap:14px;margin-bottom:10px">
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555"><span style="width:12px;height:12px;border-radius:3px;background:#0097A7;display:inline-block"></span>Hombres aptos</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555"><span style="width:12px;height:12px;border-radius:3px;background:#7B1FA2;display:inline-block"></span>Mujeres aptas</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#555"><span style="width:12px;height:12px;border-radius:3px;background:#43A047;display:inline-block"></span>Total aptos</span>
+      </div>
+      <div style="position:relative;height:280px"><canvas id="c-fn"></canvas></div>
+    </div>
+  `;
+  setTimeout(()=>{
+    const p2=ps();
+    const totM=p2.filter(x=>x.sexo==='M').length;
+    const totF=p2.filter(x=>x.sexo==='F').length;
+
+    // Documentacion card
+    const etapasCompletas=ETAPAS; // all 8 stages
+    const llegaDoc=p2.filter(x=>etapasCompletas.every(e=>x.etapas[e.key]==='Apto'));
+    const docV=llegaDoc.filter(x=>x.sexo==='M').length;
+    const docF=llegaDoc.filter(x=>x.sexo==='F').length;
+    const docTotal=llegaDoc.length;
+    const pctV=totM>0?Math.round(docV/totM*100):0;
+    const pctF2=totF>0?Math.round(docF/totF*100):0;
+    const el=document.getElementById('doc-cards');
+    if(el) el.innerHTML=`
+      <div style="background:#fff;border:2px solid #0097A7;border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:16px">
+
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#0097A7;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Hombres en Documentación</div>
+          <div style="font-size:32px;font-weight:700;color:#0097A7;line-height:1">${docV}</div>
+          <div style="font-size:12px;color:#888;margin-top:3px">${pctV}% de los hombres inscriptos</div>
+        </div>
+      </div>
+      <div style="background:#fff;border:2px solid #7B1FA2;border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:16px">
+
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#7B1FA2;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Mujeres en Documentación</div>
+          <div style="font-size:32px;font-weight:700;color:#7B1FA2;line-height:1">${docF}</div>
+          <div style="font-size:12px;color:#888;margin-top:3px">${pctF2}% de las mujeres inscriptas</div>
+        </div>
+      </div>
+    `;
+    const labels=ETAPAS.map(e=>e.label);
+
+    // Chart 1: % aptos por sexo por etapa (grouped bars)
+    const elSx=document.getElementById('c-sx');
+    if(elSx){
+      const pctM=ETAPAS.map(e=>{
+        const t=p2.filter(x=>x.sexo==='M'&&x.etapas[e.key]).length;
+        const a=p2.filter(x=>x.sexo==='M'&&x.etapas[e.key]==='Apto').length;
+        return t?Math.round(a/t*100):0;
+      });
+      const pctF=ETAPAS.map(e=>{
+        const t=p2.filter(x=>x.sexo==='F'&&x.etapas[e.key]).length;
+        const a=p2.filter(x=>x.sexo==='F'&&x.etapas[e.key]==='Apto').length;
+        return t?Math.round(a/t*100):0;
+      });
+      charts.sx=new Chart(elSx,{type:'bar',
+        data:{labels,datasets:[
+          {label:'Hombres %',data:pctM,backgroundColor:'#0097A7',borderRadius:4},
+          {label:'Mujeres %',data:pctF,backgroundColor:'#7B1FA2',borderRadius:4},
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}%`}}},
+          scales:{
+            x:{ticks:{font:{size:10},maxRotation:40},grid:{display:false}},
+            y:{min:0,max:100,ticks:{font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.05)'},title:{display:true,text:'% Aptos',font:{size:11}}}
+          }}});
+    }
+
+    // Chart 2: cantidad de aptos acumulados por etapa (las mismas personas)
+    // A person is "still going" in an etapa if they got Apto in ALL previous etapas AND this one
+    const elFn=document.getElementById('c-fn');
+    if(elFn){
+      function aptosAcumulados(sexFilter){
+        return ETAPAS.map((e,i)=>{
+          const etapasHasta=ETAPAS.slice(0,i+1);
+          return p2.filter(x=>{
+            if(sexFilter&&x.sexo!==sexFilter)return false;
+            return etapasHasta.every(et=>x.etapas[et.key]==='Apto');
+          }).length;
+        });
+      }
+      const totalAcum=aptosAcumulados(null);
+      const varAcum=aptosAcumulados('M');
+      const mujAcum=aptosAcumulados('F');
+      charts.fn=new Chart(elFn,{type:'line',
+        data:{labels,datasets:[
+          {label:'Total aptos',data:totalAcum,borderColor:'#43A047',backgroundColor:'#43A04720',fill:true,tension:.35,pointBackgroundColor:'#43A047',pointRadius:5,pointHoverRadius:7,borderWidth:2},
+          {label:'Hombres aptos',data:varAcum,borderColor:'#0097A7',backgroundColor:'transparent',tension:.35,pointBackgroundColor:'#0097A7',pointRadius:5,pointHoverRadius:7,borderWidth:2,borderDash:[5,3]},
+          {label:'Mujeres aptas',data:mujAcum,borderColor:'#7B1FA2',backgroundColor:'transparent',tension:.35,pointBackgroundColor:'#7B1FA2',pointRadius:5,pointHoverRadius:7,borderWidth:2,borderDash:[5,3]},
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},
+            tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y} personas`}}},
+          scales:{
+            x:{ticks:{font:{size:10},maxRotation:40},grid:{display:false}},
+            y:{min:0,ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,.05)'},title:{display:true,text:'Cantidad',font:{size:11}}}
+          }}});
+    }
+  },80);
+}
+
+function renderLista(){
+  const vl=document.getElementById('v-lista');
+  if(!document.getElementById('lista-filtros')){
+    const etCols=ETAPAS.map(e=>`<th>${e.label}</th>`).join('');
+    vl.innerHTML=`
+      <div id="lista-filtros" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <input id="f-q" type="text" placeholder="Buscar nombre o DNI..."
+          style="flex:1;min-width:160px;padding:8px 12px;font-size:13px;border:1.5px solid #D0D5DD;border-radius:8px"
+          oninput="fq=this.value;renderTabla()">
+        <select id="f-e" style="padding:8px 12px;font-size:13px;border:1.5px solid #D0D5DD;border-radius:8px" onchange="fe=this.value;renderTabla()">
+          <option value="">Todas las etapas</option>
+          ${ETAPAS.map(e=>`<option value="${e.key}">${e.label}</option>`).join('')}
+        </select>
+        <select id="f-r" style="padding:8px 12px;font-size:13px;border:1.5px solid #D0D5DD;border-radius:8px" onchange="fr=this.value;renderTabla()">
+          <option value="">Todos los resultados</option>
+          ${['Apto','NAT','NAD','Ausente'].map(r=>`<option value="${r}">${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="tw cc" style="padding:0">
+        <table>
+          <thead><tr><th>#</th><th>Nombre</th><th>DNI</th><th>S</th><th>E</th>${etCols}<th>Prom.</th><th>Acciones</th></tr></thead>
+          <tbody id="lista-tbody"></tbody>
+        </table>
+      </div>
+      <div id="lista-count" style="font-size:11px;color:#999;margin-top:8px"></div>
+    `;
+  }
+  const fq_el=document.getElementById('f-q');
+  if(fq_el&&document.activeElement!==fq_el)fq_el.value=fq;
+  renderTabla();
+}
+
+function renderTabla(){
+  const q=fq.toLowerCase();
+  let list=ps().filter(p=>{
+    if(q&&!p.nombre.toLowerCase().includes(q)&&!p.dni.includes(q))return false;
+    if(fe&&fr){if(p.etapas[fe]!==fr)return false;}
+    else if(fe){if(!p.etapas[fe])return false;}
+    else if(fr){if(!ETAPAS.some(e=>p.etapas[e.key]===fr))return false;}
+    return true;
+  });
+  const rows=list.length?list.map((p,i)=>{
+    const pr=prom(p);
+    return`<tr>
+      <td style="color:#999;font-size:11px">${i+1}</td>
+      <td style="font-weight:600;min-width:160px">${p.nombre}</td>
+      <td style="font-family:monospace;font-size:11px">${p.dni}</td>
+      <td style="text-align:center">${p.sexo||'—'}</td>
+      <td style="text-align:center">${p.edad||'—'}</td>
+      ${ETAPAS.map(e=>`<td style="text-align:center">${badge(p.etapas[e.key])}</td>`).join('')}
+      <td style="text-align:center;font-weight:700;color:${ac()}">${pr!==null?pr.toFixed(2):'—'}</td>
+      <td><div class="actions">
+        <button class="btn btn-sm" onclick="openModal(${p.id})">Editar</button>
+        <button class="btn btn-sm btn-d" onclick="delP(${p.id})">Eliminar</button>
+      </div></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="16" class="emp">No hay resultados.</td></tr>`;
+  const tb=document.getElementById('lista-tbody');
+  const ct=document.getElementById('lista-count');
+  if(tb)tb.innerHTML=rows;
+  if(ct)ct.textContent=`Mostrando ${list.length} de ${ps().length} postulantes`;
+}
+
+function renderMerito(){
+  const sorted=ps().map(p=>{const d=promDetalle(p);return{...p,pr:d?d.avg:null,det:d};}).filter(p=>p.pr!==null).sort((a,b)=>b.pr-a.pr);
+  const rkC=['#FFF8E1:#F57F17','#F5F5F5:#616161','#F1F8E9:#33691E'];
+  document.getElementById('v-merito').innerHTML=`
+    <div class="cc">
+      <div class="ct">Orden de mérito — ${cl()}</div>
+      <div style="background:#F0F4FF;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#333;line-height:1.6">
+        <strong>Escala de notas:</strong> A = 4 puntos &nbsp;|&nbsp; B = 3 puntos &nbsp;|&nbsp; C = 2 puntos &nbsp;|&nbsp; D = 1 punto<br>
+        <strong>Promedio:</strong> suma de puntos de las notas cargadas ÷ cantidad de notas cargadas
+      </div>
+      ${sorted.length===0?'<div class="emp">No hay postulantes con notas registradas todavía.</div>':`
+      <div class="tw"><table>
+        <thead><tr>
+          <th style="width:50px">Pos.</th><th>Nombre</th><th>DNI</th>
+          <th>Sexo</th><th>Edad</th>
+          ${NOTAS.map(n=>`<th>${n.label}</th>`).join('')}
+          <th>Cálculo</th>
+          <th>Promedio</th>
+        </tr></thead>
+        <tbody>${sorted.map((p,i)=>{
+          const[bg,fg]=(rkC[i]||'#FAFAFA:#555').split(':');
+          const d=p.det;
+          const calculo=d?`${d.partes.map(x=>x.letra+'('+x.valor+')').join('+')}=${d.suma}/${d.count}`:'—';
+          return`<tr>
+            <td><span class="rank" style="background:${bg};color:${fg}">${i+1}</span></td>
+            <td style="font-weight:600">${p.nombre}</td>
+            <td style="font-family:monospace;font-size:11px">${p.dni}</td>
+            <td style="text-align:center">${p.sexo||'—'}</td>
+            <td style="text-align:center">${p.edad||'—'}</td>
+            ${NOTAS.map(n=>`<td style="text-align:center">${lbadge(p.notas[n.key])}</td>`).join('')}
+            <td style="font-family:monospace;font-size:10px;color:#666;white-space:nowrap">${calculo}</td>
+            <td style="text-align:center;font-weight:700;font-size:15px;color:${ac()}">${p.pr.toFixed(2)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>`}
+    </div>
+  `;
+}
+
+function toggleCausa(key, val){
+  const wrap=document.getElementById('causa-wrap-'+key);
+  if(wrap) wrap.style.display=(val==='NAT'||val==='NAD')?'block':'none';
+}
+
+function openModal(id){
+  editId=id;
+  const p=id?ps().find(x=>x.id===id):null;
+  document.getElementById('modal-t').textContent=p?`Editar — ${p.nombre}`:`Agregar postulante — ${cl()}`;
+  const color=ac();
+  document.getElementById('modal-body').innerHTML=`
+    <div class="sd">Datos personales</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="grid-column:span 2"><label class="fl">Apellido y Nombre *</label><input class="fi" id="mn" type="text" value="${p?p.nombre:''}" placeholder="García, Carlos Alberto"></div>
+      <div><label class="fl">DNI *</label><input class="fi" id="mdni" type="text" value="${p?p.dni:''}" placeholder="25.678.901"></div>
+      <div><label class="fl">Sexo</label><select class="fi" id="ms"><option value="">—</option><option value="M"${p&&p.sexo==='M'?' selected':''}>M — Varón</option><option value="F"${p&&p.sexo==='F'?' selected':''}>F — Mujer</option></select></div>
+      <div><label class="fl">Edad</label><input class="fi" id="medad" type="number" min="18" max="60" value="${p&&p.edad?p.edad:''}" placeholder="25"></div>
+    </div>
+    <div class="sd">Resultados por etapa</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
+      ${ETAPAS.map(e=>{
+        const causas=CAUSAS[e.key];
+        const val=p&&p.etapas[e.key]?p.etapas[e.key]:'';
+        const causa=p&&p.causas&&p.causas[e.key]?p.causas[e.key]:'';
+        const showCausa=causas&&(val==='NAT'||val==='NAD');
+        return`<div>
+          <label class="fl">${e.label}</label>
+          <select class="fi" id="me-${e.key}" onchange="toggleCausa('${e.key}',this.value)">
+            ${R_OPS.map(o=>`<option value="${o}"${val===o?' selected':''}>${o||'—'}</option>`).join('')}
+          </select>
+          ${causas?`<div id="causa-wrap-${e.key}" style="margin-top:5px;display:${showCausa?'block':'none'}">
+            <select class="fi" id="mc-${e.key}" style="font-size:11px;border-color:#F44336">
+              <option value="">— Causal —</option>
+              ${causas.map(c=>`<option value="${c}"${causa===c?' selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="sd">Notas para orden de mérito (A/B/C/D)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px">
+      ${NOTAS.map(n=>`<div><label class="fl">${n.label}</label><select class="fi" id="mn-${n.key}">${N_OPS.map(o=>`<option value="${o}"${p&&p.notas[n.key]===o?' selected':''}>${o||'—'}</option>`).join('')}</select></div>`).join('')}
+    </div>
+    <div class="ferr" id="ferr"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ${cuerpo==='policia'?'btn-p':'btn-b'}" onclick="saveP()">Guardar</button>
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+    </div>
+  `;
+  document.getElementById('modal-wrap').className='overlay open';
+}
+
+function closeModal(){document.getElementById('modal-wrap').className='overlay';editId=null;}
+
+function saveP(){
+  const nombre=(document.getElementById('mn').value||'').trim();
+  const dni=(document.getElementById('mdni').value||'').trim();
+  const err=document.getElementById('ferr');
+  if(!nombre||!dni){err.textContent='Nombre y DNI son obligatorios.';err.style.display='block';return;}
+  err.style.display='none';
+  const etapas={};ETAPAS.forEach(e=>{etapas[e.key]=document.getElementById('me-'+e.key).value;});
+  const notas={};NOTAS.forEach(n=>{notas[n.key]=document.getElementById('mn-'+n.key).value;});
+  const causas={};ETAPAS.forEach(e=>{const el=document.getElementById('mc-'+e.key);if(el)causas[e.key]=el.value;});
+  const obj={nombre,dni,sexo:document.getElementById('ms').value,edad:parseInt(document.getElementById('medad').value)||null,etapas,notas,causas};
+  if(editId){const i=data[cuerpo].findIndex(p=>p.id===editId);if(i>=0)data[cuerpo][i]={...data[cuerpo][i],...obj};}
+  else data[cuerpo].push({id:nextId++,...obj});
+  saveData();closeModal();render();
+}
+
+function delP(id){
+  if(!confirm('¿Eliminar este postulante?'))return;
+  data[cuerpo]=data[cuerpo].filter(p=>p.id!==id);
+  saveData();renderLista();
+}
+
+window.onclick=function(e){if(e.target===document.getElementById('modal-wrap'))closeModal();}
+
+if(!loadData()){const s=sampleData();data={policia:s.policia,bomberos:s.bomberos};nextId=s.nextId;}
+if(cfgLoaded()){
+  setSyncStatus('loading','Conectando...');
+  pullData(true).then(()=>startAutoSync());
+} else {
+  setSyncStatus('off','Sin sincronización — hacé clic en Configurar para compartir datos');
+}
+updateNav();render();
+</script>
+</body>
+</html>

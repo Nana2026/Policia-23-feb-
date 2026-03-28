@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Integral — Selección e Ingresos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#F0F2F5;color:#1a1a1a;font-size:14px}
+.topbar{background:#1F2D3D;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.topbar-t{font-size:16px;font-weight:700}
+.topbar-s{font-size:11px;opacity:.6;margin-top:1px}
+.toggle{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid rgba(255,255,255,.3)}
+.tb{padding:6px 18px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;color:rgba(255,255,255,.65);transition:all .15s}
+.tb.ap{background:#185FA5;color:#fff}
+.tb.af{background:#993C1D;color:#fff}
+.sync-bar{display:flex;align-items:center;gap:8px;padding:5px 20px;background:#263040;color:rgba(255,255,255,.6);font-size:11px;border-top:1px solid rgba(255,255,255,.08)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#9E9E9E;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:#4CAF50}
+.sync-dot.err{background:#F44336}
+.sync-dot.loading{background:#FFC107;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.main{max-width:1200px;margin:0 auto;padding:16px}
+.nav{display:flex;background:#fff;border-radius:10px;padding:4px;margin-bottom:14px;gap:3px;border:1px solid #E0E4EA;overflow-x:auto;flex-wrap:nowrap}
+.nb{padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:transparent;color:#777;border-radius:7px;transition:all .15s;white-space:nowrap}
+.nb.a-p{background:#185FA5;color:#fff}
+.nb.a-b{background:#993C1D;color:#fff}
+.nb:hover:not(.a-p):not(.a-b){background:#F0F2F5}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:12px}
+.sc{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #E8EBF0}
+.sl{font-size:10px;color:#888;margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.sv{font-size:24px;font-weight:700}
+.cc{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #E8EBF0;margin-bottom:12px}
+.ct{font-size:11px;font-weight:700;color:#555;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+.cupo-bar{background:#F0F2F5;border-radius:20px;height:8px;overflow:hidden;margin-top:4px}
+.cupo-fill{height:100%;border-radius:20px;transition:width .4s}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:#F7F9FC}
+th{padding:8px 10px;text-align:left;font-weight:700;font-size:10px;color:#555;border-bottom:2px solid #E8EBF0;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+td{padding:8px 10px;vertical-align:middle;border-bottom:1px solid #F0F2F5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFBFC}
+.bk{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.b-apto{background:#E8F5E9;color:#2E7D32}
+.b-nat{background:#FFF3E0;color:#E65100}
+.b-nad{background:#FFEBEE;color:#C62828}
+.b-baja{background:#ECEFF1;color:#455A64}
+.b-proc{background:#E3F2FD;color:#1565C0}
+.btn{padding:7px 14px;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;border:1.5px solid #D0D5DD;background:#fff;color:#333;transition:all .15s}
+.btn:hover{background:#F5F5F5}
+.btn-p{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-p:hover{background:#0C447C}
+.btn-b{background:#993C1D;color:#fff;border-color:#993C1D}
+.btn-b:hover{background:#712B13}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-d{color:#C62828;border-color:#F5C6C6}
+.btn-d:hover{background:#FFEBEE}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:700px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mt{font-size:15px;font-weight:700}
+.xb{background:none;border:none;font-size:22px;cursor:pointer;color:#999;padding:0 4px}
+.fi{width:100%;padding:7px 10px;font-size:12px;border:1.5px solid #D0D5DD;border-radius:8px;background:#fff;color:#1a1a1a}
+.fi:focus{outline:none;border-color:#185FA5}
+.fl{font-size:10px;font-weight:700;color:#555;margin-bottom:3px;display:block;text-transform:uppercase;letter-spacing:.04em}
+.sd{font-size:10px;font-weight:700;color:#888;border-bottom:2px solid #F0F2F5;padding-bottom:5px;margin:12px 0 8px;letter-spacing:.05em;text-transform:uppercase}
+.ferr{color:#C62828;font-size:12px;margin-bottom:8px;display:none;padding:8px;background:#FFEBEE;border-radius:6px}
+.tw{overflow-x:auto}
+.emp{text-align:center;padding:2rem;color:#999;font-size:13px}
+.cnat{border-color:#FF9800 !important}
+.cnad{border-color:#F44336 !important}
+.prog-bar{background:#F0F2F5;border-radius:20px;height:5px;overflow:hidden;margin-top:3px}
+.prog-fill{height:100%;border-radius:20px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-t">Dashboard Integral — Selección e Ingresos</div>
+    <div class="topbar-s" id="hdr-s">Policía</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <div class="toggle">
+      <button class="tb ap" id="btn-pol" onclick="setCuerpo('policia')">Policía</button>
+      <button class="tb" id="btn-bom" onclick="setCuerpo('bomberos')">Bomberos</button>
+    </div>
+    <button class="btn btn-sm" onclick="openCupoModal()" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">Cupo</button>
+    <button class="btn btn-sm btn-p" id="btn-add" onclick="openModal(null)">+ Agregar</button>
+  </div>
+</div>
+<div class="sync-bar">
+  <span class="sync-dot" id="sync-dot"></span>
+  <span id="sync-msg">Conectando...</span>
+</div>
+<div class="main">
+  <div class="nav" id="main-nav">
+    <button class="nb" onclick="showView('resumen')">Resumen</button>
+    <button class="nb" onclick="showView('embudo')">Embudo</button>
+    <button class="nb" onclick="showView('causales')">Causales</button>
+    <button class="nb" onclick="showView('genero')">Género</button>
+    <button class="nb" onclick="showView('nat')">NAT</button>
+    <button class="nb" onclick="showView('proyeccion')">Proyección</button>
+    <button class="nb" onclick="showView('postulantes')">Postulantes</button>
+    <button class="nb" onclick="showView('merito')">Orden de mérito</button>
+  </div>
+  <div id="v-resumen"></div>
+  <div id="v-embudo" style="display:none"></div>
+  <div id="v-causales" style="display:none"></div>
+  <div id="v-genero" style="display:none"></div>
+  <div id="v-nat" style="display:none"></div>
+  <div id="v-proyeccion" style="display:none"></div>
+  <div id="v-postulantes" style="display:none"></div>
+  <div id="v-merito" style="display:none"></div>
+</div>
+
+<div class="overlay" id="modal-wrap">
+  <div class="modal">
+    <div class="mh">
+      <span class="mt" id="modal-t">Agregar postulante</span>
+      <button class="xb" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<div class="overlay" id="cupo-wrap">
+  <div class="modal" style="max-width:400px">
+    <div class="mh">
+      <span class="mt" id="cupo-t">Configurar cupo</span>
+      <button class="xb" onclick="closeCupoModal()">×</button>
+    </div>
+    <div id="cupo-body"></div>
+  </div>
+</div>
+
+<script>
+const ETAPAS=[
+  {key:'psico1',label:'Psicología 1ra'},
+  {key:'psico2',label:'Psicología 2da'},
+  {key:'entrevistaPers',label:'Entrevista Personal'},
+  {key:'entrevistaPolicial',label:'Entrevista Policial'},
+  {key:'medico',label:'Médico'},
+  {key:'atletismo',label:'Atletismo'},
+  {key:'socioambiental',label:'Socioambiental'},
+  {key:'intelectual',label:'Intelectual'},
+  {key:'documentacion',label:'Documentación'},
+];
+const CAUSALES={
+  psico1:{
+    nat:['Fallas severas en coordinación visomotriz','Pensamiento no convencional','Inestabilidad emocional','Descontrol impulsivo','Baja tolerancia al estrés / frustración / presiones','Manejo inadecuado de relaciones interpersonales','Recursos cognitivos insuficientes para el puesto'],
+    nad:['Trastornos cognitivos','Indicadores psico-orgánicos','Indicadores de psicopatología','Adicciones','Trastornos adaptativos']
+  },
+  psico2:{
+    nat:['Fallas severas en coordinación visomotriz','Pensamiento no convencional','Inestabilidad emocional','Descontrol impulsivo','Baja tolerancia al estrés / frustración / presiones','Manejo inadecuado de relaciones interpersonales','Recursos cognitivos insuficientes para el puesto'],
+    nad:['Trastornos cognitivos','Indicadores psico-orgánicos','Indicadores de psicopatología','Adicciones','Trastornos adaptativos']
+  },
+  entrevistaPers:{
+    nat:['Motivación poco clara','Conocimiento limitado de la institución','Información personal insuficiente','Dificultades leves de comunicación','Trayectoria poco definida','Inseguridad en la entrevista','Requiere profundización','Respuestas poco consistentes'],
+    nad:['Ausencia de motivación','Motivación incompatible con la función','Desconocimiento total de la institución','Inconsistencias relevantes en trayectoria','Actitud incompatible con el servicio público','Dificultades severas de expresión','Incumplimiento de requisitos legales','Perfil no compatible con la función']
+  },
+  entrevistaPolicial:{
+    nat:['Motivación poco desarrollada o externa','Objetivos poco claros o no alineados','Conocimiento parcial del rol policial','Falta de fundamentación en respuestas','Apoyo familiar limitado','Regulación emocional básica sin estrategias','Autocrítica superficial','Dudas en dilemas éticos','Postura ambigua frente al consumo'],
+    nad:['Ausencia de motivación','Objetivos incompatibles con la función','Desconocimiento total de la función','Ideas erróneas graves sobre el rol','Desregulación emocional significativa','Niega errores o justifica conductas indebidas','Normaliza la corrupción','No respeta normas o autoridad','Justifica o normaliza consumo ilícito','Conducta evasiva o actitud inadecuada','Perfil incompatible con la función policial']
+  },
+  medico:{
+    nat:['Estudios médicos pendientes','Requiere interconsulta con especialista','Tratamiento médico en curso','Falta de documentación médica','Parámetros clínicos a reevaluar','Hallazgo clínico en observación','Resultado de laboratorio no concluyente'],
+    nad:['Limitación funcional osteoarticular','Deformaciones óseas relevantes','Alteraciones de columna','Cardiopatías','Hipertensión arterial persistente','Asma','EPOC / enfermedad pulmonar crónica','Epilepsia / crisis convulsivas','Trastornos neurológicos','Enfermedades endocrinas incompatibles','Obesidad incompatible','HIV con carga viral detectable','Tuberculosis','Hipoacusia','Patología incompatible con la función policial']
+  },
+  atletismo:{
+    nat:['Marca no alcanzada — reevaluación pendiente','Lesión durante la prueba','Ausente a la prueba','En recuperación médica'],
+    nad:['Incapacidad física permanente','Condición física incompatible con la función']
+  },
+  socioambiental:{
+    nat:['Domicilio no verificado','Domicilio no coincidente con lo declarado','Ausencia del postulante en visita','Información insuficiente para evaluación','Requiere ampliación de informe','Entrevista incompleta','Grupo familiar en verificación','Referencias no concluyentes'],
+    nad:['Condiciones habitacionales incompatibles','Domicilio inexistente o no comprobable','Residencia inestable','Entorno familiar conflictivo','Vinculación con contextos delictivos','Familiares con antecedentes relevantes','Influencia negativa del entorno','Referencias negativas del entorno','Incongruencias relevantes en la información','Conductas incompatibles con la función','Perfil socioambiental incompatible']
+  },
+  documentacion:{
+    nat:['Faltantes de documentación','Documentación incompleta','Documentación en trámite','Inconsistencias documentales','Familiares con antecedentes (en verificación)'],
+    nad:['Edad fuera de los parámetros de ingreso','Título apócrifo / documentación fraudulenta','Causa penal del postulante','Antecedentes penales incompatibles','Inhabilitación para cargos públicos','Baja obligatoria por sanción','Exoneración o cesantía en fuerzas / administración pública']
+  }
+};
+const NOTAS_MERITO=[
+  {key:'psico2',label:'Psicología'},
+  {key:'atletismo',label:'Atletismo'},
+  {key:'entrevistaPolicial',label:'Entrev. Pol.'},
+  {key:'intelectual',label:'Intelectual'},
+];
+const LV={A:4,B:3,C:2,D:1};
+const N_OPS=['','A','B','C','D'];
+const ESTADO_LABELS={en_proceso:'En proceso',apto_final:'Apto final',nat:'NAT',nad:'NAD',baja:'Baja voluntaria'};
+const ESTADO_COLORS={en_proceso:'#1565C0',apto_final:'#2E7D32',nat:'#E65100',nad:'#C62828',baja:'#455A64'};
+const R_OPS=['','Apto','NAT','NAD','Ausente'];
+
+let cuerpo='policia',view='resumen',editId=null,charts={};
+let data={policia:[],bomberos:[]},nextId=1;
+let cupo={policia:{total:0,m:0,f:0},bomberos:{total:0,m:0,f:0}};
+let fq='',fEstado='',fSexo='';
+const syncKey='$2a$10$2xPPW8deUpZK5HDtQ12IA.eJE2TWCraoecq4E.mNLusSPqQii6PXe';
+const syncBin='69c5e554aa77b81da923bd09';
+let syncTimer=null;
+
+function ps(){return data[cuerpo]||[];}
+function ac(){return cuerpo==='policia'?'#185FA5':'#993C1D';}
+function cl(){return cuerpo==='policia'?'Policía':'Bomberos';}
+
+function calcEstado(p){
+  if(p.estadoManual==='baja')return'baja';
+  const res=ETAPAS.map(e=>(p.etapas[e.key]||{}).resultado||'');
+  if(res.some(r=>r==='NAD'))return'nad';
+  if(res.some(r=>r==='NAT'))return'nat';
+  if(res.filter(r=>r!=='').length===ETAPAS.length&&res.every(r=>r==='Apto'))return'apto_final';
+  return'en_proceso';
+}
+
+function emptyP(id){
+  const etapas={};
+  ETAPAS.forEach(e=>{etapas[e.key]={resultado:'',causal:'',detalle:'',puntaje:'',nota:''};});
+  return{id,nombre:'',dni:'',sexo:'',edad:null,curso:'',estadoManual:'',etapas};
+}
+
+function compress(p){
+  const e={};
+  ETAPAS.forEach(et=>{
+    const v=p.etapas[et.key]||{};
+    if(v.resultado||v.causal||v.detalle||v.puntaje){
+      e[et.key]={};
+      if(v.resultado)e[et.key].r=v.resultado;
+      if(v.causal)e[et.key].c=v.causal;
+      if(v.detalle)e[et.key].d=v.detalle;
+      if(v.puntaje)e[et.key].p=v.puntaje;
+      if(v.nota)e[et.key].n=v.nota;
+    }
+  });
+  const r={id:p.id,n:p.nombre,d:p.dni,e};
+  if(p.sexo)r.s=p.sexo;
+  if(p.edad)r.a=p.edad;
+  if(p.curso)r.c=p.curso;
+  if(p.estadoManual)r.em=p.estadoManual;
+  return r;
+}
+
+function expand(r){
+  const etapas={};
+  ETAPAS.forEach(et=>{
+    const v=(r.e||{})[et.key]||{};
+    etapas[et.key]={resultado:v.r||'',causal:v.c||'',detalle:v.d||'',puntaje:v.p||'',nota:v.n||''};
+  });
+  return{id:r.id,nombre:r.n||'',dni:r.d||'',sexo:r.s||'',edad:r.a||null,curso:r.c||'',estadoManual:r.em||'',etapas};
+}
+
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-msg');
+  if(dot)dot.className='sync-dot'+(state==='ok'?' ok':state==='err'?' err':state==='loading'?' loading':'');
+  if(txt)txt.textContent=msg;
+}
+async function pushData(){
+  setSyncStatus('loading','Guardando...');
+  try{
+    const res=await fetch('https://api.jsonbin.io/v3/b/'+syncBin,{
+      method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':syncKey,'X-Bin-Versioning':'false'},
+      body:JSON.stringify({policia:data.policia.map(compress),bomberos:data.bomberos.map(compress),nextId,cupo})
+    });
+    if(!res.ok)throw new Error(res.status);
+    setSyncStatus('ok','Guardado a las '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){setSyncStatus('err','Error al guardar — revisá la conexión');}
+}
+async function pullData(){
+  try{
+    const res=await fetch('https://api.jsonbin.io/v3/b/'+syncBin+'/latest',{headers:{'X-Master-Key':syncKey}});
+    if(!res.ok)throw new Error(res.status);
+    const json=await res.json();
+    const r=json.record;
+    if(r&&r.policia){
+      data={policia:(r.policia||[]).map(expand),bomberos:(r.bomberos||[]).map(expand)};
+      nextId=r.nextId||1;
+      if(r.cupo)cupo=r.cupo;
+      localStorage.setItem('dash-v1',JSON.stringify({data:{policia:data.policia.map(compress),bomberos:data.bomberos.map(compress)},nextId,cupo}));
+      render();
+      setSyncStatus('ok','Actualizado a las '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}));
+    }
+  }catch(e){setSyncStatus('err','Error al conectar');}
+}
+function saveData(){
+  try{localStorage.setItem('dash-v1',JSON.stringify({data:{policia:data.policia.map(compress),bomberos:data.bomberos.map(compress)},nextId,cupo}));}catch(e){}
+  pushData();
+}
+function loadData(){
+  try{
+    const r=JSON.parse(localStorage.getItem('dash-v1')||'null');
+    if(r&&r.data){data={policia:(r.data.policia||[]).map(expand),bomberos:(r.data.bomberos||[]).map(expand)};nextId=r.nextId||1;if(r.cupo)cupo=r.cupo;return true;}
+  }catch(e){}
+  return false;
+}
+
+function sampleData(){
+  const mk=(id,n,d,s,a,c,es)=>{const p=emptyP(id);p.nombre=n;p.dni=d;p.sexo=s;p.edad=a;p.curso=c;es.forEach(([k,r,ca])=>{p.etapas[k].resultado=r;if(ca)p.etapas[k].causal=ca;});return p;};
+  return{
+    policia:[
+      mk(1,'García, Carlos Alberto','25.678.901','M',25,'2024-A',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','Apto'],['entrevistaPolicial','Apto'],['medico','Apto'],['atletismo','Apto'],['socioambiental','Apto'],['documentacion','Apto']]),
+      mk(2,'Rodríguez, María Fernanda','30.123.456','F',22,'2024-A',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','NAT','Motivación poco clara']]),
+      mk(3,'López, Juan Manuel','28.345.678','M',27,'2024-A',[['psico1','Apto'],['psico2','NAD','Trastornos cognitivos']]),
+      mk(4,'Martínez, Ana Laura','33.456.789','F',21,'2024-A',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','Apto'],['entrevistaPolicial','Apto'],['medico','NAT','Estudios médicos pendientes']]),
+      mk(5,'Torres, Diego Sebastián','26.789.012','M',28,'2024-A',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','Apto'],['entrevistaPolicial','Apto'],['medico','Apto'],['atletismo','Apto'],['socioambiental','Apto'],['documentacion','Apto']]),
+      mk(6,'Fernández, Lucía','31.234.567','F',23,'2024-A',[['psico1','NAT','Inestabilidad emocional']]),
+      mk(7,'Sánchez, Roberto','24.567.890','M',30,'2024-A',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','Apto'],['entrevistaPolicial','Apto'],['medico','Apto'],['atletismo','Apto'],['socioambiental','Apto'],['documentacion','Apto']]),
+      mk(8,'Díaz, Carolina','29.876.543','F',24,'2024-A',[['psico1','Ausente']]),
+      mk(9,'Acosta, Ramiro Nicolás','35.111.222','M',23,'2024-A',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','Apto'],['entrevistaPolicial','Apto'],['medico','NAD','Cardiopatías']]),
+    ],
+    bomberos:[
+      mk(10,'Pérez, Martín Ezequiel','27.654.321','M',26,'2024-B',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','Apto'],['entrevistaPolicial','Apto'],['medico','Apto'],['atletismo','Apto'],['socioambiental','Apto'],['documentacion','Apto']]),
+      mk(11,'González, Valeria','32.109.876','F',22,'2024-B',[['psico1','Apto'],['psico2','Apto'],['medico','NAT','Requiere interconsulta con especialista']]),
+      mk(12,'Herrera, Pablo','25.432.109','M',29,'2024-B',[['psico1','Apto'],['psico2','NAD','Adicciones']]),
+      mk(13,'Castro, Daniela','34.567.890','F',20,'2024-B',[['psico1','Apto'],['psico2','Apto'],['entrevistaPers','Apto'],['entrevistaPolicial','Apto'],['medico','Apto'],['atletismo','Apto'],['socioambiental','Apto'],['documentacion','Apto']]),
+    ],
+    nextId:14,cupo:{policia:{total:20,m:14,f:6},bomberos:{total:10,m:7,f:3}}
+  };
+}
+
+function estadoBadge(e){const cls={en_proceso:'b-proc',apto_final:'b-apto',nat:'b-nat',nad:'b-nad',baja:'b-baja'};return`<span class="bk ${cls[e]||'b-proc'}">${ESTADO_LABELS[e]||e}</span>`;}
+function resBadge(r){if(!r)return'<span style="color:#bbb">—</span>';const c=r==='Apto'?'b-apto':r==='NAT'?'b-nat':r==='NAD'?'b-nad':'b-baja';return`<span class="bk ${c}">${r}</span>`;}
+
+function setCuerpo(c){
+  cuerpo=c;
+  document.getElementById('btn-pol').className='tb'+(c==='policia'?' ap':'');
+  document.getElementById('btn-bom').className='tb'+(c==='bomberos'?' af':'');
+  document.getElementById('btn-add').className='btn btn-sm '+(c==='policia'?'btn-p':'btn-b');
+  document.getElementById('hdr-s').textContent=cl();
+  document.getElementById('v-postulantes').innerHTML='';
+  render();
+}
+function showView(v){view=v;updateNav();render();}
+function updateNav(){
+  const views=['resumen','embudo','causales','genero','nat','proyeccion','postulantes','merito'];
+  const nbs=document.getElementById('main-nav').querySelectorAll('.nb');
+  views.forEach((v,i)=>{
+    const nb=nbs[i];if(!nb)return;
+    nb.className='nb'+(v===view?(' '+(cuerpo==='policia'?'a-p':'a-b')):'');
+    const el=document.getElementById('v-'+v);if(el)el.style.display=v===view?'block':'none';
+  });
+}
+function destroyCharts(){Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};}
+function render(){destroyCharts();updateNav();if(view==='resumen')renderResumen();else if(view==='embudo')renderEmbudo();else if(view==='causales')renderCausales();else if(view==='genero')renderGenero();else if(view==='nat')renderNAT();else if(view==='proyeccion')renderProyeccion();else if(view==='postulantes')renderPostulantes();else if(view==='merito')renderMerito();}
+
+function renderResumen(){
+  const p=ps();
+  const est={en_proceso:0,apto_final:0,nat:0,nad:0,baja:0};
+  p.forEach(x=>est[calcEstado(x)]++);
+  const cq=cupo[cuerpo]||{total:0,m:0,f:0};
+  const confM=p.filter(x=>x.sexo==='M'&&calcEstado(x)==='apto_final').length;
+  const confF=p.filter(x=>x.sexo==='F'&&calcEstado(x)==='apto_final').length;
+  const pctT=cq.total>0?Math.min(100,Math.round((confM+confF)/cq.total*100)):0;
+  const pctM=cq.m>0?Math.min(100,Math.round(confM/cq.m*100)):0;
+  const pctF=cq.f>0?Math.min(100,Math.round(confF/cq.f*100)):0;
+  document.getElementById('v-resumen').innerHTML=`
+    <div class="stats">
+      <div class="sc"><div class="sl">Total inscriptos</div><div class="sv">${p.length}</div></div>
+      <div class="sc"><div class="sl">En proceso</div><div class="sv" style="color:#1565C0">${est.en_proceso}</div></div>
+      <div class="sc"><div class="sl">Aptos finales</div><div class="sv" style="color:#2E7D32">${est.apto_final}</div></div>
+      <div class="sc"><div class="sl">NAT activos</div><div class="sv" style="color:#E65100">${est.nat}</div></div>
+      <div class="sc"><div class="sl">NAD</div><div class="sv" style="color:#C62828">${est.nad}</div></div>
+      <div class="sc"><div class="sl">Bajas</div><div class="sv" style="color:#455A64">${est.baja}</div></div>
+    </div>
+    <div class="g3">
+      <div class="cc"><div class="ct">Cupo total</div>
+        <div style="font-size:28px;font-weight:700;color:${ac()}">${confM+confF}<span style="font-size:14px;color:#999;font-weight:400"> / ${cq.total}</span></div>
+        <div class="cupo-bar"><div class="cupo-fill" style="width:${pctT}%;background:${ac()}"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:4px">${pctT}% cubierto — faltan ${Math.max(0,cq.total-(confM+confF))}</div>
+      </div>
+      <div class="cc"><div class="ct">Cupo hombres</div>
+        <div style="font-size:28px;font-weight:700;color:#0097A7">${confM}<span style="font-size:14px;color:#999;font-weight:400"> / ${cq.m}</span></div>
+        <div class="cupo-bar"><div class="cupo-fill" style="width:${pctM}%;background:#0097A7"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:4px">${pctM}% — faltan ${Math.max(0,cq.m-confM)}</div>
+      </div>
+      <div class="cc"><div class="ct">Cupo mujeres</div>
+        <div style="font-size:28px;font-weight:700;color:#7B1FA2">${confF}<span style="font-size:14px;color:#999;font-weight:400"> / ${cq.f}</span></div>
+        <div class="cupo-bar"><div class="cupo-fill" style="width:${pctF}%;background:#7B1FA2"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:4px">${pctF}% — faltan ${Math.max(0,cq.f-confF)}</div>
+      </div>
+    </div>
+    <div class="cc"><div class="ct">Distribución de estados</div>
+      <div style="position:relative;height:220px"><canvas id="c-est"></canvas></div>
+    </div>`;
+  setTimeout(()=>{
+    const el=document.getElementById('c-est');if(!el)return;
+    charts.est=new Chart(el,{type:'doughnut',
+      data:{labels:Object.keys(est).map(k=>ESTADO_LABELS[k]),datasets:[{data:Object.values(est),backgroundColor:Object.keys(est).map(k=>ESTADO_COLORS[k]),borderWidth:2,borderColor:'#fff'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:12}}}}});
+  },80);
+}
+
+function renderEmbudo(){
+  const p=ps(),total=p.length;
+  const counts=ETAPAS.map((e,i)=>{const h=ETAPAS.slice(0,i+1);return p.filter(x=>h.every(et=>(x.etapas[et.key]||{}).resultado==='Apto')).length;});
+  const pcts=counts.map(c=>total>0?Math.round(c/total*100):0);
+  const drops=counts.map((c,i)=>i===0?(total-c):counts[i-1]-c);
+  document.getElementById('v-embudo').innerHTML=`
+    <div class="cc"><div class="ct">Embudo de selección — aptos acumulados por etapa</div>
+      <div style="position:relative;height:280px;margin-bottom:14px"><canvas id="c-emb"></canvas></div>
+      <div class="tw"><table>
+        <thead><tr><th>Etapa</th><th style="text-align:center">Aptos</th><th style="text-align:center">% del total</th><th style="text-align:center">Caída</th><th>Progreso</th></tr></thead>
+        <tbody>${ETAPAS.map((e,i)=>`<tr>
+          <td style="font-weight:600">${e.label}</td>
+          <td style="text-align:center;font-weight:700;color:${ac()}">${counts[i]}</td>
+          <td style="text-align:center">${pcts[i]}%</td>
+          <td style="text-align:center;color:#C62828;font-weight:700">${drops[i]>0?'-'+drops[i]:''}</td>
+          <td style="min-width:120px"><div class="prog-bar"><div class="prog-fill" style="width:${pcts[i]}%;background:${ac()}"></div></div></td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+      <div style="font-size:11px;color:#888;margin-top:6px">Total inscriptos: ${total}</div>
+    </div>`;
+  const ETAPA_COLORS=['#185FA5','#7B1FA2','#0097A7','#E65100','#2E7D32','#C62828','#5D4037','#1565C0','#AD1457'];
+  setTimeout(()=>{
+    const el=document.getElementById('c-emb');if(!el)return;
+    charts.emb=new Chart(el,{type:'bar',
+      data:{labels:ETAPAS.map(e=>e.label),datasets:[{label:'Aptos',data:counts,
+        backgroundColor:ETAPAS.map((_,i)=>ETAPA_COLORS[i%ETAPA_COLORS.length]+'CC'),
+        borderColor:ETAPAS.map((_,i)=>ETAPA_COLORS[i%ETAPA_COLORS.length]),
+        borderWidth:1,borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{font:{size:10},maxRotation:40},grid:{display:false}},y:{min:0,ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,.05)'}}}}});
+  },80);
+}
+
+function renderCausales(){
+  const p=ps();
+  const allNAT={},allNAD={};
+  p.forEach(x=>ETAPAS.forEach(e=>{
+    const et=x.etapas[e.key]||{};
+    if(et.resultado==='NAT'&&et.causal)allNAT[et.causal]=(allNAT[et.causal]||0)+1;
+    if(et.resultado==='NAD'&&et.causal)allNAD[et.causal]=(allNAD[et.causal]||0)+1;
+  }));
+  const topNAT=Object.entries(allNAT).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const topNAD=Object.entries(allNAD).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const barHtml=(items,color)=>items.length===0?'<div class="emp">Sin datos registrados</div>':items.map(([c,n])=>`
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+        <span style="color:#333">${c}</span><span style="font-weight:700;color:${color}">${n}</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(n/items[0][1]*100)}%;background:${color}"></div></div>
+    </div>`).join('');
+  let html=`<div class="g2">
+    <div class="cc"><div class="ct" style="color:#E65100">Top causales NAT</div>${barHtml(topNAT,'#E65100')}</div>
+    <div class="cc"><div class="ct" style="color:#C62828">Top causales NAD</div>${barHtml(topNAD,'#C62828')}</div>
+  </div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">`;
+  ETAPAS.forEach(e=>{
+    const nat=p.filter(x=>(x.etapas[e.key]||{}).resultado==='NAT').length;
+    const nad=p.filter(x=>(x.etapas[e.key]||{}).resultado==='NAD').length;
+    const cc={};
+    p.forEach(x=>{const et=x.etapas[e.key]||{};if((et.resultado==='NAT'||et.resultado==='NAD')&&et.causal)cc[et.causal]=(cc[et.causal]||0)+1;});
+    const sorted=Object.entries(cc).sort((a,b)=>b[1]-a[1]);
+    const mx=sorted[0]?sorted[0][1]:1;
+    html+=`<div class="cc"><div class="ct">${e.label}</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px"><span class="bk b-nat">NAT: ${nat}</span><span class="bk b-nad">NAD: ${nad}</span></div>
+      ${sorted.length===0?'<div style="color:#bbb;font-size:11px;text-align:center;padding:6px">Sin causales registradas</div>':sorted.slice(0,6).map(([c,n])=>`
+        <div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:#444">${c}</span><span style="font-weight:700">${n}</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(n/mx*100)}%;background:${ac()}"></div></div>
+        </div>`).join('')}
+    </div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('v-causales').innerHTML=html;
+}
+
+function renderGenero(){
+  const p=ps(),cq=cupo[cuerpo]||{total:0,m:0,f:0};
+  const totM=p.filter(x=>x.sexo==='M').length,totF=p.filter(x=>x.sexo==='F').length;
+  const aptoM=p.filter(x=>x.sexo==='M'&&calcEstado(x)==='apto_final').length;
+  const aptoF=p.filter(x=>x.sexo==='F'&&calcEstado(x)==='apto_final').length;
+  const natM=p.filter(x=>x.sexo==='M'&&calcEstado(x)==='nat').length;
+  const natF=p.filter(x=>x.sexo==='F'&&calcEstado(x)==='nat').length;
+  const nadM=p.filter(x=>x.sexo==='M'&&calcEstado(x)==='nad').length;
+  const nadF=p.filter(x=>x.sexo==='F'&&calcEstado(x)==='nad').length;
+  const cardG=(label,total,apto,nat,nad,cupoN,color)=>`<div class="cc">
+    <div class="ct">${label}</div>
+    <div style="font-size:32px;font-weight:700;color:${color}">${total}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px">
+      <div style="background:${color}18;border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;font-weight:700;color:${color};text-transform:uppercase">Aptos</div><div style="font-size:20px;font-weight:700;color:${color}">${apto}</div></div>
+      <div style="background:#FFF3E0;border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;font-weight:700;color:#E65100;text-transform:uppercase">NAT</div><div style="font-size:20px;font-weight:700;color:#E65100">${nat}</div></div>
+      <div style="background:#FFEBEE;border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;font-weight:700;color:#C62828;text-transform:uppercase">NAD</div><div style="font-size:20px;font-weight:700;color:#C62828">${nad}</div></div>
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:11px;color:#888;margin-bottom:3px">Cupo: ${apto} / ${cupoN}</div>
+      <div class="cupo-bar"><div class="cupo-fill" style="width:${cupoN>0?Math.min(100,Math.round(apto/cupoN*100)):0}%;background:${color}"></div></div>
+    </div>
+  </div>`;
+  document.getElementById('v-genero').innerHTML=`
+    <div class="g2">${cardG('Hombres',totM,aptoM,natM,nadM,cq.m,'#0097A7')}${cardG('Mujeres',totF,aptoF,natF,nadF,cq.f,'#7B1FA2')}</div>
+    <div class="cc"><div class="ct">% aptos por sexo en cada etapa</div>
+      <div style="display:flex;gap:12px;margin-bottom:8px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#555"><span style="width:10px;height:10px;border-radius:2px;background:#0097A7;display:inline-block"></span>Hombres</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#555"><span style="width:10px;height:10px;border-radius:2px;background:#7B1FA2;display:inline-block"></span>Mujeres</span>
+      </div>
+      <div style="position:relative;height:260px"><canvas id="c-gen"></canvas></div>
+    </div>`;
+  setTimeout(()=>{
+    const el=document.getElementById('c-gen');if(!el)return;
+    charts.gen=new Chart(el,{type:'bar',data:{labels:ETAPAS.map(e=>e.label),datasets:[
+      {label:'Hombres %',data:ETAPAS.map(e=>{const t=p.filter(x=>x.sexo==='M'&&(x.etapas[e.key]||{}).resultado).length;const a=p.filter(x=>x.sexo==='M'&&(x.etapas[e.key]||{}).resultado==='Apto').length;return t?Math.round(a/t*100):0;}),backgroundColor:'#0097A7',borderRadius:4},
+      {label:'Mujeres %',data:ETAPAS.map(e=>{const t=p.filter(x=>x.sexo==='F'&&(x.etapas[e.key]||{}).resultado).length;const a=p.filter(x=>x.sexo==='F'&&(x.etapas[e.key]||{}).resultado==='Apto').length;return t?Math.round(a/t*100):0;}),backgroundColor:'#7B1FA2',borderRadius:4},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}%`}}},
+      scales:{x:{ticks:{font:{size:9},maxRotation:40},grid:{display:false}},y:{min:0,max:100,ticks:{font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.05)'}}}}});
+  },80);
+}
+
+function renderNAT(){
+  const p=ps();
+  const nats=p.filter(x=>calcEstado(x)==='nat');
+  const byEtapa=ETAPAS.map(e=>({label:e.label,count:p.filter(x=>(x.etapas[e.key]||{}).resultado==='NAT').length})).filter(x=>x.count>0);
+  document.getElementById('v-nat').innerHTML=`
+    <div class="stats">
+      <div class="sc"><div class="sl">Total NAT activos</div><div class="sv" style="color:#E65100">${nats.length}</div></div>
+      <div class="sc"><div class="sl">NAT hombres</div><div class="sv" style="color:#0097A7">${nats.filter(x=>x.sexo==='M').length}</div></div>
+      <div class="sc"><div class="sl">NAT mujeres</div><div class="sv" style="color:#7B1FA2">${nats.filter(x=>x.sexo==='F').length}</div></div>
+    </div>
+    <div class="g2">
+      <div class="cc"><div class="ct">NAT por etapa</div>
+        ${byEtapa.length===0?'<div class="emp">Sin NAT registrados</div>':byEtapa.map(e=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #F0F2F5">
+            <span style="font-size:12px">${e.label}</span><span class="bk b-nat">${e.count}</span>
+          </div>`).join('')}
+      </div>
+      <div class="cc"><div class="ct">Recordatorio</div>
+        <div style="font-size:12px;color:#555;line-height:1.8;padding:4px 0">
+          <div style="margin-bottom:8px"><span class="bk b-nat">NAT</span> = No Apto <strong>Transitorio</strong></div>
+          <div style="font-size:11px;color:#888">El postulante puede recuperarse si cumple la condición pendiente. Requiere seguimiento activo.</div>
+          <div style="margin-top:12px"><span class="bk b-nad">NAD</span> = No Apto <strong>Definitivo</strong></div>
+          <div style="font-size:11px;color:#888;margin-top:4px">Exclusión permanente del proceso.</div>
+        </div>
+      </div>
+    </div>
+    <div class="cc"><div class="ct">Listado NAT activos</div>
+      ${nats.length===0?'<div class="emp">No hay NAT activos</div>':`
+      <div class="tw"><table>
+        <thead><tr><th>Nombre</th><th>DNI</th><th>Sexo</th><th>Etapa NAT</th><th>Causal</th></tr></thead>
+        <tbody>${nats.map(q=>{
+          const natEt=ETAPAS.filter(e=>(q.etapas[e.key]||{}).resultado==='NAT');
+          return`<tr>
+            <td style="font-weight:600">${q.nombre}</td>
+            <td style="font-family:monospace;font-size:11px">${q.dni}</td>
+            <td style="text-align:center">${q.sexo||'—'}</td>
+            <td>${natEt.map(e=>`<span class="bk b-nat" style="margin:1px">${e.label}</span>`).join(' ')}</td>
+            <td style="font-size:11px;color:#888">${natEt.map(e=>(q.etapas[e.key]||{}).causal||'—').join(' / ')}</td>
+          </tr>`;}).join('')}</tbody>
+      </table></div>`}
+    </div>`;
+}
+
+function renderProyeccion(){
+  const p=ps(),cq=cupo[cuerpo]||{total:0,m:0,f:0};
+  const aptos=p.filter(x=>calcEstado(x)==='apto_final').length;
+  const pipeline=p.filter(x=>['en_proceso','nat'].includes(calcEstado(x))).length;
+  const excl=p.filter(x=>['nad','baja'].includes(calcEstado(x))).length;
+  const base=p.length-excl||1;
+  const tasa=Math.round(aptos/base*100);
+  const proyectados=aptos+Math.round(pipeline*tasa/100);
+  const gap=cq.total-proyectados;
+  const aptoM=p.filter(x=>x.sexo==='M'&&calcEstado(x)==='apto_final').length;
+  const aptoF=p.filter(x=>x.sexo==='F'&&calcEstado(x)==='apto_final').length;
+  const pipM=p.filter(x=>x.sexo==='M'&&['en_proceso','nat'].includes(calcEstado(x))).length;
+  const pipF=p.filter(x=>x.sexo==='F'&&['en_proceso','nat'].includes(calcEstado(x))).length;
+  const proyM=aptoM+Math.round(pipM*tasa/100);
+  const proyF=aptoF+Math.round(pipF*tasa/100);
+  document.getElementById('v-proyeccion').innerHTML=`
+    <div class="stats">
+      <div class="sc"><div class="sl">Aptos confirmados</div><div class="sv" style="color:#2E7D32">${aptos}</div></div>
+      <div class="sc"><div class="sl">Cupo habilitado</div><div class="sv">${cq.total}</div></div>
+      <div class="sc"><div class="sl">Proyección final</div><div class="sv" style="color:${ac()}">${proyectados}</div></div>
+      <div class="sc"><div class="sl">Gap vs cupo</div><div class="sv" style="color:${gap>0?'#C62828':'#2E7D32'}">${gap>0?'-'+gap:gap===0?'0':'+'+Math.abs(gap)}</div></div>
+      <div class="sc"><div class="sl">Tasa aprobación</div><div class="sv">${tasa}%</div></div>
+    </div>
+    <div class="g2">
+      <div class="cc"><div class="ct">Proyección hombres</div>
+        <div style="font-size:28px;font-weight:700;color:#0097A7">${proyM}<span style="font-size:13px;color:#888;font-weight:400"> est. / ${cq.m} cupo</span></div>
+        <div class="cupo-bar" style="height:10px;margin-top:8px"><div class="cupo-fill" style="width:${cq.m>0?Math.min(100,Math.round(proyM/cq.m*100)):0}%;background:#0097A7"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:5px">Confirmados: ${aptoM} | Pipeline: ${pipM}</div>
+      </div>
+      <div class="cc"><div class="ct">Proyección mujeres</div>
+        <div style="font-size:28px;font-weight:700;color:#7B1FA2">${proyF}<span style="font-size:13px;color:#888;font-weight:400"> est. / ${cq.f} cupo</span></div>
+        <div class="cupo-bar" style="height:10px;margin-top:8px"><div class="cupo-fill" style="width:${cq.f>0?Math.min(100,Math.round(proyF/cq.f*100)):0}%;background:#7B1FA2"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:5px">Confirmadas: ${aptoF} | Pipeline: ${pipF}</div>
+      </div>
+    </div>
+    <div class="cc" style="background:#FFFDE7;border-color:#FDD835">
+      <div class="ct">Cómo se calcula</div>
+      <div style="font-size:12px;color:#555;line-height:1.8">
+        Tasa de aprobación actual: <strong>${tasa}%</strong> (aptos / postulantes activos).<br>
+        Proyección = aptos confirmados + pipeline × tasa de aprobación.<br>
+        Se actualiza automáticamente cada vez que se carga un resultado.
+      </div>
+    </div>`;
+}
+
+function renderPostulantes(){
+  const vl=document.getElementById('v-postulantes');
+  if(!document.getElementById('lista-filtros')){
+    vl.innerHTML=`
+      <div id="lista-filtros" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <input id="f-q" type="text" placeholder="Buscar nombre o DNI..."
+          style="flex:1;min-width:150px;padding:7px 10px;font-size:12px;border:1.5px solid #D0D5DD;border-radius:8px;background:#fff"
+          oninput="fq=this.value;renderTabla()">
+        <select id="f-e" style="padding:7px 10px;font-size:12px;border:1.5px solid #D0D5DD;border-radius:8px;background:#fff" onchange="fEstado=this.value;renderTabla()">
+          <option value="">Todos los estados</option>
+          ${Object.entries(ESTADO_LABELS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+        </select>
+        <select id="f-s" style="padding:7px 10px;font-size:12px;border:1.5px solid #D0D5DD;border-radius:8px;background:#fff" onchange="fSexo=this.value;renderTabla()">
+          <option value="">Todos los sexos</option>
+          <option value="M">Hombres</option>
+          <option value="F">Mujeres</option>
+        </select>
+      </div>
+      <div style="background:#fff;border-radius:10px;border:1px solid #E8EBF0;overflow:hidden">
+        <div class="tw"><table>
+          <thead><tr><th>#</th><th>Nombre</th><th>DNI</th><th>S</th><th>E</th><th>Curso</th><th>Estado</th><th>Última etapa</th><th></th></tr></thead>
+          <tbody id="lista-tbody"></tbody>
+        </table></div>
+      </div>
+      <div id="lista-count" style="font-size:11px;color:#888;margin-top:6px"></div>`;
+  }
+  renderTabla();
+}
+
+function renderTabla(){
+  const q=fq.toLowerCase();
+  const list=ps().filter(p=>{
+    if(q&&!p.nombre.toLowerCase().includes(q)&&!p.dni.includes(q))return false;
+    if(fEstado&&calcEstado(p)!==fEstado)return false;
+    if(fSexo&&p.sexo!==fSexo)return false;
+    return true;
+  });
+  let lastEt;
+  const rows=list.length?list.map((p,i)=>{
+    lastEt='—';
+    for(let j=ETAPAS.length-1;j>=0;j--){if((p.etapas[ETAPAS[j].key]||{}).resultado){lastEt=ETAPAS[j].label;break;}}
+    return`<tr>
+      <td style="color:#999;font-size:11px">${i+1}</td>
+      <td style="font-weight:600;min-width:150px">${p.nombre}</td>
+      <td style="font-family:monospace;font-size:11px">${p.dni}</td>
+      <td style="text-align:center">${p.sexo||'—'}</td>
+      <td style="text-align:center">${p.edad||'—'}</td>
+      <td style="font-size:11px;color:#888">${p.curso||'—'}</td>
+      <td>${estadoBadge(calcEstado(p))}</td>
+      <td style="font-size:11px;color:#555">${lastEt}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-sm" onclick="openModal(${p.id})">Editar</button>
+        <button class="btn btn-sm btn-d" onclick="delP(${p.id})">×</button>
+      </div></td>
+    </tr>`;}).join(''):`<tr><td colspan="9" class="emp">No hay resultados.</td></tr>`;
+  const tb=document.getElementById('lista-tbody');
+  const ct=document.getElementById('lista-count');
+  if(tb)tb.innerHTML=rows;
+  if(ct)ct.textContent=`Mostrando ${list.length} de ${ps().length} postulantes`;
+}
+
+function openModal(id){
+  editId=id;
+  const p=id?ps().find(x=>x.id===id):emptyP(null);
+  document.getElementById('modal-t').textContent=p&&id?`Editar — ${p.nombre}`:`Nuevo postulante — ${cl()}`;
+  const etapasHtml=ETAPAS.map(e=>{
+    const et=(p.etapas||{})[e.key]||{};
+    const res=et.resultado||'',caus=et.causal||'',det=et.detalle||'',punt=et.puntaje||'';
+    const show=res==='NAT'||res==='NAD';
+    const causales=CAUSALES[e.key]||{nat:[],nad:[]};
+    const cops=res==='NAT'?causales.nat:res==='NAD'?causales.nad:[...causales.nat,...causales.nad];
+    return`<div style="background:#F9FAFB;border-radius:8px;padding:10px;border:1px solid #E8EBF0">
+      <div style="font-size:11px;font-weight:700;color:${ac()};margin-bottom:8px;text-transform:uppercase">${e.label}</div>
+      <div style="display:grid;grid-template-columns:${e.key==='entrevistaPolicial'?'1fr 80px':'1fr'};gap:6px;margin-bottom:6px">
+        <div><label class="fl">Resultado</label>
+          <select class="fi" id="me-${e.key}" onchange="onResChange('${e.key}',this.value)">
+            ${R_OPS.map(o=>`<option value="${o}"${res===o?' selected':''}>${o||'—'}</option>`).join('')}
+          </select>
+        </div>
+        ${e.key==='entrevistaPolicial'?`<div><label class="fl">Puntaje</label>
+          <input class="fi" id="mp-${e.key}" type="number" min="1" max="5" step="0.1" value="${punt}" placeholder="1-5" oninput="calcPuntaje()">
+        </div>`:''}
+      </div>
+      ${NOTAS_MERITO.some(n=>n.key===e.key)?`<div style="margin-bottom:6px">
+        <label class="fl">Nota (orden de mérito)</label>
+        <select class="fi" id="mn-${e.key}" style="border-color:#7B1FA2">
+          ${N_OPS.map(o=>`<option value="${o}" ${et.nota===o?'selected':''}>${o||'—'}</option>`).join('')}
+        </select>
+      </div>`:''}
+      <div id="cw-${e.key}" style="display:${show?'block':'none'}">
+        <label class="fl">Causal</label>
+        <select class="fi ${res==='NAT'?'cnat':res==='NAD'?'cnad':''}" id="mc-${e.key}" style="margin-bottom:6px">
+          <option value="">— Seleccionar causal —</option>
+          ${cops.map(c=>`<option value="${c}"${caus===c?' selected':''}>${c}</option>`).join('')}
+        </select>
+        <label class="fl">Detalle (opcional)</label>
+        <input class="fi" id="md-${e.key}" type="text" value="${det}" placeholder="Observaciones...">
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('modal-body').innerHTML=`
+    <div class="sd">Datos personales</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+      <div style="grid-column:span 2"><label class="fl">Apellido y Nombre *</label><input class="fi" id="mn" type="text" value="${p.nombre}" placeholder="García, Carlos Alberto"></div>
+      <div><label class="fl">DNI *</label><input class="fi" id="mdni" type="text" value="${p.dni}" placeholder="25.678.901"></div>
+      <div><label class="fl">Sexo</label><select class="fi" id="ms"><option value="">—</option><option value="M"${p.sexo==='M'?' selected':''}>M — Hombre</option><option value="F"${p.sexo==='F'?' selected':''}>F — Mujer</option></select></div>
+      <div><label class="fl">Edad</label><input class="fi" id="medad" type="number" min="18" max="60" value="${p.edad||''}" placeholder="25"></div>
+      <div><label class="fl">Curso</label><input class="fi" id="mcurso" type="text" value="${p.curso||''}" placeholder="2024-A"></div>
+      <div style="grid-column:span 2"><label class="fl">Estado manual</label>
+        <select class="fi" id="mem"><option value="">Automático</option><option value="baja"${p.estadoManual==='baja'?' selected':''}>Baja voluntaria</option></select>
+      </div>
+    </div>
+    <div class="sd">Etapas del proceso</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-bottom:12px">${etapasHtml}</div>
+    <div class="ferr" id="ferr"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ${cuerpo==='policia'?'btn-p':'btn-b'}" onclick="saveP()">Guardar</button>
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+    </div>`;
+  document.getElementById('modal-wrap').className='overlay open';
+}
+
+function onResChange(key,val){
+  const wrap=document.getElementById('cw-'+key);
+  const sel=document.getElementById('mc-'+key);
+  if(wrap)wrap.style.display=(val==='NAT'||val==='NAD')?'block':'none';
+  if(sel){
+    sel.className='fi '+(val==='NAT'?'cnat':val==='NAD'?'cnad':'');
+    const c=CAUSALES[key]||{nat:[],nad:[]};
+    const ops=val==='NAT'?c.nat:val==='NAD'?c.nad:[...c.nat,...c.nad];
+    sel.innerHTML='<option value="">— Seleccionar causal —</option>'+ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+  }
+}
+function calcPuntaje(){
+  const pEl=document.getElementById('mp-entrevistaPolicial');
+  const rEl=document.getElementById('me-entrevistaPolicial');
+  if(!pEl||!rEl)return;
+  const v=parseFloat(pEl.value);
+  if(!isNaN(v)){const res=v>=4?'Apto':v===3?'NAT':'NAD';rEl.value=res;onResChange('entrevistaPolicial',res);}
+}
+function closeModal(){document.getElementById('modal-wrap').className='overlay';editId=null;}
+function saveP(){
+  const nombre=(document.getElementById('mn').value||'').trim();
+  const dni=(document.getElementById('mdni').value||'').trim();
+  const err=document.getElementById('ferr');
+  if(!nombre||!dni){err.textContent='Nombre y DNI son obligatorios.';err.style.display='block';return;}
+  err.style.display='none';
+  const etapas={};
+  ETAPAS.forEach(e=>{etapas[e.key]={
+    resultado:document.getElementById('me-'+e.key)?.value||'',
+    causal:document.getElementById('mc-'+e.key)?.value||'',
+    detalle:document.getElementById('md-'+e.key)?.value||'',
+    puntaje:document.getElementById('mp-'+e.key)?.value||'',
+    nota:document.getElementById('mn-'+e.key)?.value||'',
+  };});
+  const obj={nombre,dni,sexo:document.getElementById('ms').value,edad:parseInt(document.getElementById('medad').value)||null,
+    curso:document.getElementById('mcurso').value.trim(),estadoManual:document.getElementById('mem').value,etapas};
+  if(editId){const i=data[cuerpo].findIndex(p=>p.id===editId);if(i>=0)data[cuerpo][i]={...data[cuerpo][i],...obj};}
+  else data[cuerpo].push({id:nextId++,...obj});
+  saveData();closeModal();render();
+}
+function delP(id){
+  if(!confirm('¿Eliminar este postulante?'))return;
+  data[cuerpo]=data[cuerpo].filter(p=>p.id!==id);
+  saveData();renderTabla();
+}
+
+function openCupoModal(){
+  const cq=cupo[cuerpo]||{total:0,m:0,f:0};
+  document.getElementById('cupo-t').textContent='Cupo — '+cl();
+  document.getElementById('cupo-body').innerHTML=`
+    <div style="display:grid;gap:10px;margin-bottom:14px">
+      <div><label class="fl">Cupo total habilitado</label><input class="fi" id="cqt" type="number" min="0" value="${cq.total}"></div>
+      <div><label class="fl">Cupo hombres</label><input class="fi" id="cqm" type="number" min="0" value="${cq.m}"></div>
+      <div><label class="fl">Cupo mujeres</label><input class="fi" id="cqf" type="number" min="0" value="${cq.f}"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ${cuerpo==='policia'?'btn-p':'btn-b'}" onclick="saveCupo()">Guardar</button>
+      <button class="btn" onclick="closeCupoModal()">Cancelar</button>
+    </div>`;
+  document.getElementById('cupo-wrap').className='overlay open';
+}
+function closeCupoModal(){document.getElementById('cupo-wrap').className='overlay';}
+function saveCupo(){
+  cupo[cuerpo]={total:parseInt(document.getElementById('cqt').value)||0,m:parseInt(document.getElementById('cqm').value)||0,f:parseInt(document.getElementById('cqf').value)||0};
+  saveData();closeCupoModal();render();
+}
+window.onclick=function(e){if(e.target===document.getElementById('modal-wrap'))closeModal();if(e.target===document.getElementById('cupo-wrap'))closeCupoModal();};
+
+function lbadge(v){
+  if(!v)return'<span style="color:#bbb">—</span>';
+  const m={A:'#E8F5E9;#2E7D32',B:'#E3F2FD;#1565C0',C:'#FFF3E0;#E65100',D:'#FFEBEE;#C62828'};
+  const[bg,fg]=(m[v]||'#F5F5F5;#555').split(';');
+  const extra=v==='D'?'border:2px solid #E53935;':'';
+  return`<span class="bk" style="background:${bg};color:${fg};${extra}font-weight:700">${v}</span>`;
+}
+function calcProm(x){
+  const notas=NOTAS_MERITO.map(n=>(x.etapas[n.key]||{}).nota||'');
+  if(notas.some(n=>!['A','B','C','D'].includes(n)))return null;
+  return notas.reduce((s,n)=>s+LV[n],0)/notas.length;
+}
+function renderMerito(){
+  const p=ps();
+  const sorted=p
+    .map(x=>({...x,prom:calcProm(x)}))
+    .filter(x=>x.prom!==null)
+    .sort((a,b)=>b.prom-a.prom);
+  const rkColors=['#FFF8E1;#F57F17','#F5F5F5;#616161','#F1F8E9;#33691E'];
+  document.getElementById('v-merito').innerHTML=`
+    <div class="cc" style="margin-bottom:10px;background:#F3E5F5;border-color:#CE93D8">
+      <div style="font-size:12px;color:#6A1B9A;line-height:1.7">
+        <strong>Escala:</strong> A = 4 pts &nbsp;|&nbsp; B = 3 pts &nbsp;|&nbsp; C = 2 pts &nbsp;|&nbsp; D = 1 pt &nbsp;|&nbsp;
+        <strong>Etapas:</strong> Psicología 2da · Atletismo · Entrevista Policial · Intelectual<br>
+        El promedio se calcula <strong>solo cuando las 5 notas están cargadas</strong>. Las D se resaltan en rojo.
+      </div>
+    </div>
+    <div class="cc">
+      <div class="ct">Orden de mérito — ${cl()}</div>
+      ${sorted.length===0?'<div class="emp">No hay postulantes con las 5 notas completas todavía.</div>':`
+      <div class="tw"><table>
+        <thead><tr>
+          <th style="width:50px">Pos.</th>
+          <th>Nombre</th><th>DNI</th><th>Sexo</th><th>Edad</th><th>Curso</th>
+          ${NOTAS_MERITO.map(n=>`<th style="text-align:center">${n.label}</th>`).join('')}
+          <th style="text-align:center">Cálculo</th>
+          <th style="text-align:center">Promedio</th>
+        </tr></thead>
+        <tbody>${sorted.map((x,i)=>{
+          const[bg,fg]=(rkColors[i]||'#FAFAFA;#555').split(';');
+          const notas=NOTAS_MERITO.map(n=>(x.etapas[n.key]||{}).nota||'');
+          const calculo=notas.map(n=>n+'('+LV[n]+')').join('+')+' = '+notas.reduce((s,n)=>s+LV[n],0)+'/'+NOTAS_MERITO.length;
+          return`<tr>
+            <td><span style="display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:${bg};color:${fg}">${i+1}</span></td>
+            <td style="font-weight:700;min-width:140px">${x.nombre}</td>
+            <td style="font-family:monospace;font-size:11px">${x.dni}</td>
+            <td style="text-align:center">${x.sexo||'—'}</td>
+            <td style="text-align:center">${x.edad||'—'}</td>
+            <td style="font-size:11px;color:#888">${x.curso||'—'}</td>
+            ${notas.map(n=>`<td style="text-align:center">${lbadge(n)}</td>`).join('')}
+            <td style="font-family:monospace;font-size:10px;color:#888;white-space:nowrap">${calculo}</td>
+            <td style="text-align:center;font-weight:700;font-size:16px;color:${ac()}">${x.prom.toFixed(2)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>`}
+    </div>`;
+}
+
+async function init(){
+  if(!loadData()){const s=sampleData();data={policia:s.policia,bomberos:s.bomberos};nextId=s.nextId;cupo=s.cupo;}
+  setSyncStatus('loading','Conectando...');
+  await pullData();
+  if(syncTimer)clearInterval(syncTimer);
+  syncTimer=setInterval(()=>pullData(),30000);
+  setCuerpo('policia');
+}
+init();
+</script>
+</body>
+</html>

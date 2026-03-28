@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Cargando datos de demo...</title>
+<style>
+body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#F0F2F5;margin:0}
+.box{background:#fff;border-radius:14px;padding:32px 40px;max-width:440px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.dot{width:16px;height:16px;border-radius:50%;margin:0 auto 16px;background:#FFC107;animation:pulse .8s infinite}
+.dot.ok{background:#4CAF50;animation:none}
+.dot.err{background:#F44336;animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+h2{font-size:18px;margin:0 0 8px;color:#1F2D3D}
+p{font-size:13px;color:#666;margin:0 0 6px;line-height:1.6}
+.sub{font-size:11px;color:#aaa;margin-bottom:20px}
+a{display:inline-block;background:#185FA5;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="dot" id="dot"></div>
+  <h2 id="titulo">Cargando datos de demo...</h2>
+  <p id="msg">Subiendo 30 postulantes ficticios a la nube.</p>
+  <p class="sub" id="sub"></p>
+  <a href="Dashboard_Integral.html" id="link" style="display:none">Abrir el dashboard</a>
+</div>
+<script>
+const BIN_ID='69c5e554aa77b81da923bd09';
+const API_KEY='$2a$10$2xPPW8deUpZK5HDtQ12IA.eJE2TWCraoecq4E.mNLusSPqQii6PXe';
+
+function et(res,caus,nota,det,punt){return{resultado:res||'',causal:caus||'',nota:nota||'',detalle:det||'',puntaje:punt||''};}
+function mk(id,n,d,s,a,c,etapas){return{id,nombre:n,dni:d,sexo:s,edad:a,curso:c,estadoManual:'',etapas};}
+
+const policia=[
+  mk(1,'Acosta, Ramiro Nicolás','35.111.222','M',23,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','B','',4.2),medico:et('Apto'),atletismo:et('Apto','','A'),intelectual:et('Apto','','B'),socioambiental:et('Apto','','A'),documentacion:et('Apto')}),
+  mk(2,'Benítez, Sofía Laura','31.222.333','F',24,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.8),medico:et('Apto'),atletismo:et('Apto','','B'),intelectual:et('Apto','','A'),socioambiental:et('Apto','','B'),documentacion:et('Apto')}),
+  mk(3,'Carrizo, Diego Sebastián','28.333.444','M',27,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','C'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','B','',3.5),medico:et('Apto'),atletismo:et('Apto','','C'),intelectual:et('Apto','','B'),socioambiental:et('Apto','','C'),documentacion:et('Apto')}),
+  mk(4,'Díaz, Carolina Belén','29.444.555','F',22,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.9),medico:et('Apto'),atletismo:et('Apto','','A'),intelectual:et('Apto','','A'),socioambiental:et('Apto','','A'),documentacion:et('Apto')}),
+  mk(5,'Escobar, Martín Ezequiel','26.555.666','M',29,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','D'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','C','',2.8),medico:et('Apto'),atletismo:et('Apto','','D'),intelectual:et('Apto','','C'),socioambiental:et('Apto','','D'),documentacion:et('Apto')}),
+  mk(6,'Ferreyra, Luciana Paola','33.666.777','F',21,'2024-A',{psico1:et('Apto'),psico2:et('NAT','Inestabilidad emocional'),entrevistaPers:et(''),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(7,'García, Nicolás Andrés','25.777.888','M',30,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','B','',3.8),medico:et('NAT','Estudios médicos pendientes'),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(8,'Herrera, Valentina','32.888.999','F',25,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.5),medico:et('Apto'),atletismo:et('NAT','Marca no alcanzada — reevaluación pendiente'),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(9,'Ibáñez, Gonzalo Luis','27.999.111','M',26,'2024-A',{psico1:et('Apto'),psico2:et('NAD','Indicadores de psicopatología'),entrevistaPers:et(''),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(10,'Juárez, Romina Soledad','30.111.222','F',23,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','C'),entrevistaPers:et('NAT','Motivación poco clara'),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(11,'Kramer, Federico','24.222.333','M',28,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('NAD','Normaliza la corrupción'),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(12,'López, Ana María','36.333.444','F',20,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.7),medico:et('Apto'),atletismo:et('Apto','','A'),intelectual:et('Apto','','B'),socioambiental:et('Apto','','A'),documentacion:et('NAT','Documentación en trámite')}),
+  mk(13,'Martínez, Pablo Hernán','29.444.555','M',31,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','C'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','C','',3.1),medico:et('NAD','Cardiopatías'),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(14,'Navarro, Cecilia','31.555.666','F',24,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','B','',3.9),medico:et('Apto'),atletismo:et('Apto','','B'),intelectual:et('Apto','','A'),socioambiental:et('Apto','','B'),documentacion:et('Apto')}),
+  mk(15,'Ortega, Sebastián','26.666.777','M',25,'2024-A',{psico1:et('NAT','Baja tolerancia al estrés / frustración / presiones'),psico2:et(''),entrevistaPers:et(''),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(16,'Pérez, Daniela','34.777.888','F',22,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.6),medico:et('Apto'),atletismo:et('Apto','','A'),intelectual:et('Apto','','A'),socioambiental:et('NAT','Requiere ampliación de informe'),documentacion:et('')}),
+  mk(17,'Quiroga, Matías','28.888.999','M',27,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','D'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','D','',2.1),medico:et('Apto'),atletismo:et('Apto','','D'),intelectual:et('Apto','','D'),socioambiental:et('Apto','','D'),documentacion:et('Apto')}),
+  mk(18,'Ramírez, Florencia','33.999.111','F',21,'2024-A',{psico1:et('Apto'),psico2:et('NAD','Adicciones'),entrevistaPers:et(''),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(19,'Sosa, Leandro','25.111.222','M',29,'2024-A',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','B','',3.7),medico:et('Apto'),atletismo:et('Apto','','B'),intelectual:et('Apto','','B'),socioambiental:et('Apto','','B'),documentacion:et('Apto')}),
+  mk(20,'Torres, Julieta','30.222.333','F',23,'2024-A',{psico1:et('Ausente'),psico2:et(''),entrevistaPers:et(''),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+];
+
+const bomberos=[
+  mk(21,'Álvarez, Juan Pablo','27.333.444','M',26,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.4),medico:et('Apto'),atletismo:et('Apto','','A'),intelectual:et('Apto','','A'),socioambiental:et('Apto','','A'),documentacion:et('Apto')}),
+  mk(22,'Barrios, Natalia','32.444.555','F',22,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','B','',3.6),medico:et('NAT','Requiere interconsulta con especialista'),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(23,'Castillo, Roberto','25.555.666','M',30,'2024-B',{psico1:et('Apto'),psico2:et('NAD','Trastornos cognitivos'),entrevistaPers:et(''),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(24,'Delgado, Marcela','34.666.777','F',20,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.8),medico:et('Apto'),atletismo:et('Apto','','A'),intelectual:et('Apto','','A'),socioambiental:et('Apto','','A'),documentacion:et('Apto')}),
+  mk(25,'Elizalde, Carlos','28.777.888','M',25,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','C'),entrevistaPers:et('NAT','Respuestas poco consistentes'),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(26,'Flores, Vanesa','31.888.999','F',24,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','B','',3.9),medico:et('Apto'),atletismo:et('NAT','Lesión durante la prueba'),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(27,'Gómez, Adrián','26.999.111','M',28,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.3),medico:et('Apto'),atletismo:et('Apto','','A'),intelectual:et('Apto','','B'),socioambiental:et('Apto','','A'),documentacion:et('Apto')}),
+  mk(28,'Heredia, Lorena','33.111.222','F',21,'2024-B',{psico1:et('NAT','Descontrol impulsivo'),psico2:et(''),entrevistaPers:et(''),entrevistaPolicial:et(''),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(29,'Ibarra, Sergio','29.222.333','M',27,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','B'),entrevistaPers:et('Apto'),entrevistaPolicial:et('NAD','No respeta normas o autoridad'),medico:et(''),atletismo:et(''),intelectual:et(''),socioambiental:et(''),documentacion:et('')}),
+  mk(30,'Jiménez, Paula','35.333.444','F',23,'2024-B',{psico1:et('Apto'),psico2:et('Apto','','A'),entrevistaPers:et('Apto'),entrevistaPolicial:et('Apto','','A','',4.6),medico:et('Apto'),atletismo:et('Apto','','B'),intelectual:et('Apto','','A'),socioambiental:et('Apto','','A'),documentacion:et('Apto')}),
+];
+
+function compress(p){
+  const e={};
+  const ETAPAS=['psico1','psico2','entrevistaPers','entrevistaPolicial','medico','atletismo','intelectual','socioambiental','documentacion'];
+  ETAPAS.forEach(k=>{
+    const v=p.etapas[k]||{};
+    if(v.resultado||v.causal||v.nota||v.detalle||v.puntaje){
+      e[k]={};
+      if(v.resultado)e[k].r=v.resultado;
+      if(v.causal)e[k].c=v.causal;
+      if(v.nota)e[k].n=v.nota;
+      if(v.detalle)e[k].d=v.detalle;
+      if(v.puntaje)e[k].p=v.puntaje;
+    }
+  });
+  const r={id:p.id,n:p.nombre,d:p.dni,e};
+  if(p.sexo)r.s=p.sexo;
+  if(p.edad)r.a=p.edad;
+  if(p.curso)r.c=p.curso;
+  return r;
+}
+
+const payload={
+  policia:policia.map(compress),
+  bomberos:bomberos.map(compress),
+  nextId:31,
+  cupo:{policia:{total:25,m:18,f:7},bomberos:{total:12,m:8,f:4}}
+};
+
+async function cargar(){
+  document.getElementById('sub').textContent=`${policia.length} postulantes Policía + ${bomberos.length} Bomberos`;
+  try{
+    const res=await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':API_KEY,'X-Bin-Versioning':'false'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok)throw new Error(res.status);
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('titulo').textContent='¡Datos de demo cargados!';
+    document.getElementById('msg').textContent='30 postulantes ficticios con distintas etapas, resultados y causales ya están en la nube.';
+    document.getElementById('sub').textContent='';
+    document.getElementById('link').style.display='inline-block';
+  }catch(e){
+    document.getElementById('dot').className='dot err';
+    document.getElementById('titulo').textContent='Error al conectar';
+    document.getElementById('msg').textContent='No se pudo subir los datos. Verificá la conexión e intentá de nuevo.';
+  }
+}
+cargar();
+</script>
+</body>
+</html>

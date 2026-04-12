@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────
+
+enum EstadoCodigo {
+  operativo
+  seguimiento
+  critico
+}
+
+enum EstadoCama {
+  operativa
+  mantenimiento
+  fuera_de_servicio
+}
+
+enum AccionHistorial {
+  create
+  update
+  status_change
+  deactivate
+}
+
+// ─── Usuarios y roles ─────────────────────────────────────────
+
+model Rol {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique // admin | operador
+  descripcion String?
+  usuarios    Usuario[]
+}
+
+model Usuario {
+  id            Int               @id @default(autoincrement())
+  nombre        String
+  email         String            @unique
+  password_hash String
+  rol_id        Int
+  activo        Boolean           @default(true)
+  created_at    DateTime          @default(now())
+  updated_at    DateTime          @updatedAt
+  rol           Rol               @relation(fields: [rol_id], references: [id])
+  historial     HistorialCambio[]
+}
+
+// ─── Dormitorios ──────────────────────────────────────────────
+
+model Dormitorio {
+  id                 Int                    @id @default(autoincrement())
+  nombre             String
+  capacidad          Int
+  ocupacion          Int                    @default(0)
+  estado_general     EstadoCodigo           @default(operativo)
+  revision_fecha     DateTime?
+  observacion_actual String?
+  activo             Boolean                @default(true)
+  created_at         DateTime               @default(now())
+  updated_at         DateTime               @updatedAt
+  indicadores        DormitorioIndicador[]
+  camas              Cama[]
+}
+
+model DormitorioIndicador {
+  id            Int          @id @default(autoincrement())
+  dormitorio_id Int
+  tipo          String       // electricidad | aire_ac | filtraciones
+  estado        EstadoCodigo @default(operativo)
+  detalle       String?
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  dormitorio    Dormitorio   @relation(fields: [dormitorio_id], references: [id], onDelete: Cascade)
+}
+
+model Cama {
+  id            Int        @id @default(autoincrement())
+  dormitorio_id Int
+  numero        Int
+  estado        EstadoCama @default(operativa)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  dormitorio    Dormitorio @relation(fields: [dormitorio_id], references: [id], onDelete: Cascade)
+
+  @@unique([dormitorio_id, numero])
+}
+
+// ─── Edificios y aulas ────────────────────────────────────────
+
+model Edificio {
+  id      Int      @id @default(autoincrement())
+  nombre  String
+  codigo  String   @unique
+  orden   Int      @default(0)
+  activo  Boolean  @default(true)
+  plantas Planta[]
+  aulas   Aula[]
+}
+
+model Planta {
+  id          Int      @id @default(autoincrement())
+  edificio_id Int
+  nombre      String   // Planta Baja | Planta Alta
+  orden       Int      @default(0)
+  edificio    Edificio @relation(fields: [edificio_id], references: [id], onDelete: Cascade)
+  aulas       Aula[]
+}
+
+model Aula {
+  id                 Int             @id @default(autoincrement())
+  nombre             String
+  numero             Int             @unique
+  edificio_id        Int
+  planta_id          Int
+  capacidad          Int
+  estado_general     EstadoCodigo    @default(operativo)
+  revision_fecha     DateTime?
+  observacion_actual String?
+  activo             Boolean         @default(true)
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+  edificio           Edificio        @relation(fields: [edificio_id], references: [id])
+  planta             Planta          @relation(fields: [planta_id], references: [id])
+  indicadores        AulaIndicador[]
+}
+
+model AulaIndicador {
+  id         Int          @id @default(autoincrement())
+  aula_id    Int
+  tipo       String       // proyector | tv | pc | electricidad | filtraciones
+  estado     EstadoCodigo @default(operativo)
+  detalle    String?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  aula       Aula         @relation(fields: [aula_id], references: [id], onDelete: Cascade)
+
+  @@unique([aula_id, tipo])
+}
+
+// ─── Espacios ─────────────────────────────────────────────────
+
+model Espacio {
+  id                 Int                @id @default(autoincrement())
+  nombre             String
+  icono              String?
+  sector             String
+  estado_general     EstadoCodigo       @default(operativo)
+  revision_fecha     DateTime?
+  observacion_actual String?
+  activo             Boolean            @default(true)
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @updatedAt
+  indicadores        EspacioIndicador[]
+}
+
+model EspacioIndicador {
+  id         Int          @id @default(autoincrement())
+  espacio_id Int
+  tipo       String
+  estado     EstadoCodigo @default(operativo)
+  detalle    String?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  espacio    Espacio      @relation(fields: [espacio_id], references: [id], onDelete: Cascade)
+
+  @@unique([espacio_id, tipo])
+}
+
+// ─── Árboles ──────────────────────────────────────────────────
+
+model Arbol {
+  id                 Int              @id @default(autoincrement())
+  nombre             String
+  tipo               String           // Plátano | Eucalipto | Tipa | Jacarandá | Álamo | Pino | Fresno
+  sector             String           // Patio Norte | Patio Sur | etc.
+  estado_general     EstadoCodigo     @default(operativo)
+  revision_fecha     DateTime?
+  observacion_actual String?
+  activo             Boolean          @default(true)
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+  indicadores        ArbolIndicador[]
+}
+
+model ArbolIndicador {
+  id         Int          @id @default(autoincrement())
+  arbol_id   Int
+  tipo       String       // salud | riego | poda
+  estado     EstadoCodigo @default(operativo)
+  detalle    String?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  arbol      Arbol        @relation(fields: [arbol_id], references: [id], onDelete: Cascade)
+
+  @@unique([arbol_id, tipo])
+}
+
+// ─── ART ──────────────────────────────────────────────────────
+
+model ArtCaso {
+  id                  Int          @id @default(autoincrement())
+  legajo              String       @unique
+  nombre_persona      String
+  motivo              String
+  estado_general      EstadoCodigo @default(operativo)
+  fecha_inicio        DateTime
+  fecha_alta_estimada DateTime?
+  observacion_actual  String?
+  activo              Boolean      @default(true)
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @updatedAt
+}
+
+// ─── Historial de auditoría ───────────────────────────────────
+
+model HistorialCambio {
+  id             Int             @id @default(autoincrement())
+  entidad_tipo   String          // dormitorio | aula | espacio | arbol | art_caso
+  entidad_id     Int
+  accion         AccionHistorial
+  campo          String?
+  valor_anterior String?
+  valor_nuevo    String?
+  usuario_id     Int
+  fecha_cambio   DateTime        @default(now())
+  observacion    String?
+  usuario        Usuario         @relation(fields: [usuario_id], references: [id])
+
+  @@index([entidad_tipo, entidad_id])
+  @@index([usuario_id])
+  @@index([fecha_cambio])
+}
